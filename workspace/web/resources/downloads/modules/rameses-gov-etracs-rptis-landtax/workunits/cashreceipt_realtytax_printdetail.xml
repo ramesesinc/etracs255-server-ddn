@@ -1,0 +1,42 @@
+<workunit>
+    <invokers>
+        <invoker type="cashreceiptdetail:printout" caption="AF 56 Printout Detail" name="cashreceiptdetail:printout:56"/>
+        <invoker type="cashreceiptdetail:printout:56" />
+    </invokers>
+    
+    <code>
+    <![CDATA[    
+import com.rameses.rcp.annotations.*;
+import com.rameses.rcp.common.*;
+import com.rameses.osiris2.client.*;
+import com.rameses.osiris2.common.*;
+import com.rameses.osiris2.reports.*;
+
+class RPTTaxDetailController extends ReportModel {
+
+    def reportData;
+
+    String reportPath = 'com/rameses/gov/etracs/rpt/collection/ui/';
+
+    public String getReportName() { 
+         return reportPath + "AF56Detail.jasper"; 
+    }
+
+    public Object getReportData() { 
+        def data = this.reportData; 
+        data.refno = '';
+        if ( data.paymentitems ) { 
+            data.refno = data.paymentitems.particulars.unique().join('/'); 
+        } 
+        return data; 
+    } 
+
+    public SubReport[] getSubReports() { 
+        return [
+            new SubReport("AF56Item", reportPath + "AF56DetailItem.jasper")
+        ] as SubReport[];  
+    } 
+}
+    ]]>
+    </code>
+</workunit>

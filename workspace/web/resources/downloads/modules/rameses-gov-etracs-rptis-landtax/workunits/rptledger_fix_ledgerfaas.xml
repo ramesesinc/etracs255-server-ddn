@@ -1,0 +1,9 @@
+<workunit>
+    <invokers>
+        <invoker type="rptledger:fixledgerfaas" action="init" caption="Fix Ledger FAAS Data" target="popup" index="100" />        
+    </invokers>
+    <code class="com.rameses.gov.etracs.landtax.models.RPTLedgerFixFaasModel" />
+    <pages>
+        <page template="com.rameses.gov.etracs.landtax.views.RPTLedgerFixFaasPage" />
+    </pages>
+</workunit>

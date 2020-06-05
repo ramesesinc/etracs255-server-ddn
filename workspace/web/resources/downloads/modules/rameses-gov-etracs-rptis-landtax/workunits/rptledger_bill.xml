@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workunit extends="com/rameses/osiris2/reports/templates/reports.xml">
+    <invokers>
+        <invoker type="rptledger:form:formActions" 
+                 action="init" caption="Generate Bill" 
+                 visibleWhen="#{entity.state=='APPROVED'}" 
+                 role="LANDTAX" permission="rptledger.generatebill"
+                 target="popup"/>
+        
+        <invoker type="rptledger:list:listActions" 
+                 action="init" caption="Generate Bill" 
+                 visibleWhen="#{selectedItem != null &amp;&amp; selectedItem.state == 'APPROVED'}"
+                 role="LANDTAX" permission="rptledger.generatebill"
+                 depends="selectedItem" target="popup" />
+                 
+        <invoker type="formActions" action="_close" caption="Close" mnemonic="c" />
+        <invoker type="formActions" action="preview" caption="Preview" mnemonic="v" />
+        <invoker type="formActions" action="print" caption="Print" mnemonic="p" />
+       
+   </invokers>
+    <code class="com.rameses.gov.etracs.landtax.models.RPTLedgerBillModel" />
+    <pages>
+        <page name="init" template="com.rameses.gov.etracs.landtax.views.RPTLedgerBillInitPage"/>
+    </pages>
+</workunit>
+

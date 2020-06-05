@@ -1,0 +1,19 @@
+import com.rameses.annotations.*
+import com.rameses.common.*;
+
+class SubdivisionImprovementInterceptor {
+
+	@After(pattern="RPTReportSubdivisionService.buildSummaryData")
+	public void afterBuild(evt) {
+		def subdivision = evt.args[0]
+		def data = evt.result
+		//data.improvements = em.getImprovements(subdivision)
+		data.improvements = [
+			[tdno: 'XXXXXXX']
+			[tdno: 'YYYYYYY']
+		]
+
+		println 'data => ' + data
+	}
+
+}

@@ -1,0 +1,24 @@
+"params.*" [ mode == 'init' ] {
+    enabled:true;
+}
+
+"params.*" [ mode != 'init' ] {
+    enabled:false;
+}
+
+"entity.*" [mode == 'processing'] {
+    enabled: false; 
+} 
+"entity.*" [mode != 'processing'] {
+    enabled: true; 
+} 
+
+
+"params.billdate" [params.advancebill == null || params.advancebill == false ] {
+    enabled:false;
+}
+
+"params.billdate" [ params.advancebill == true ] {
+    enabled:true;
+}
+

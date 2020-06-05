@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workunit schemaName="rptledger"
+    allowEdit="#{entity.state=='PENDING'}"
+    allowCreate="false"
+>
+    <invokers>
+        <invoker type="rptledger:open" 
+                 action="open" caption="Realty Tax Ledger" 
+                 target="window"
+                 role="LANDTAX" permission="rptledger.read"/> 
+        
+        <invoker type="formActions" 
+                 action="approve" caption="Approve" 
+                 visibleWhen="#{mode=='read' &amp;&amp; entity.state=='PENDING'}" 
+                 icon="images/toolbars/approve.png" 
+                 role="LANDTAX" permission="rptledger.approve" />
+        
+        <invoker type="historyActions" action="addFaas" caption="Add" 
+                mnemonic="A" visibleWhen="#{mode=='edit' &amp;&amp; entity.state=='PENDING'}" />
+        <invoker type="historyActions" action="editFaas" caption="Edit" 
+                mnemonic="E" visibleWhen="#{mode=='edit' &amp;&amp; entity.state=='PENDING' &amp;&amp; selectedItem &amp;&amp; selectedItem.systemcreated==0}" />
+        <invoker type="historyActions" action="removeFaas" caption="Delete" 
+                mnemonic="D" visibleWhen="#{mode=='edit' &amp;&amp; entity.state=='PENDING' &amp;&amp; selectedItem &amp;&amp; selectedItem.systemcreated==0 &amp;&amp; entity.faases.last().objid == selectedItem.objid}" />
+                
+        <invoker type="historyActions" action="fixLedgerFaas" caption="Fix FAAS" 
+                 visibleWhen="#{mode=='read' &amp;&amp; entity.state=='APPROVED' &amp;&amp; selectedItem != null }"  
+                 domain="LANDTAX" role="ADMIN" permission="rptledger.fix_ledger_faas" depends="selectedItem" />
+                 
+        <invoker type="historyActions" action="addNewLedgerFaas" caption="Add New FAAS" 
+                 visibleWhen="#{mode=='read' &amp;&amp; entity.state=='APPROVED' }"  
+                 domain="LANDTAX" role="ADMIN" permission="rptledger.add_new_ledger_faas"/>
+        
+        <invoker type="historyActions" action="viewTaxDec" caption="View Tax Declaration" 
+                 visibleWhen="#{mode=='read' &amp;&amp; selectedItem &amp;&amp; selectedItem.faasid}"  
+                 domain="LANDTAX" role="ADMIN" permission="rptledger.view_tax_dec"/>
+    </invokers>
+    
+    <code class="com.rameses.gov.etracs.landtax.models.RPTLedgerModel">
+    </code>
+    
+    <pages>
+        <page template="com.rameses.gov.etracs.landtax.views.RPTLedgerPage" />
+    </pages>
+</workunit>

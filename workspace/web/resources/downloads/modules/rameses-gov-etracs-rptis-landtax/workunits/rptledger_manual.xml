@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workunit extends="workunits/rptledger.xml">
+    <invokers>
+        <invoker type="rptledger:create" 
+                 action="create" caption="Realty Tax Ledger (New)" 
+                 target="self"
+                 role="LANDTAX" permission="rptledger.create"/> 
+   </invokers>
+   <code class="com.rameses.gov.etracs.landtax.models.RPTLedgerManualModel"/>
+   <pages>
+        <page name="create" template="com.rameses.gov.etracs.landtax.views.RPTLedgerManualInitPage" />
+        <page template="com.rameses.gov.etracs.landtax.views.RPTLedgerPage" />
+    </pages>
+</workunit>
+

@@ -1,0 +1,16 @@
+<workunit>
+    <invokers>
+        <invoker type="rptledgeritem:create" action="create" caption="Ledger Item (Create)" 
+                 target="popup" role="ADMIN" />        
+        <invoker type="rptledgeritem:edit" action="edit" caption="Ledger Item (Edit)" 
+                 target="popup" role="ADMIN" />     
+        
+        <invoker type="formActions" action="_close" caption="Cancel" mnemonic="c"/>
+        <invoker type="formActions" action="add" caption="Add" mnemonic="a" visibleWhen="#{mode=='create'}" />
+        <invoker type="formActions" action="update" caption="Update" mnemonic="u" visibleWhen="#{mode=='edit'}" />
+    </invokers>
+    <code class="com.rameses.gov.etracs.landtax.models.RPTLedgerItemModel" />
+    <pages>
+        <page template="com.rameses.gov.etracs.landtax.views.RPTLedgerItemPage" />
+    </pages>
+</workunit>

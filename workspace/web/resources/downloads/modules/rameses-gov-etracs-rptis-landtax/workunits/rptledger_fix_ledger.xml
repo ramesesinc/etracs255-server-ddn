@@ -1,0 +1,12 @@
+<workunit>
+    <invokers>
+        <invoker type="rptledger:form:menuActions" 
+                 action="init" caption="Fix Ledger" target="popup" 
+                role="ADMIN" permission="rptledger.fixledger"
+                 visibleWhen="#{entity.state=='APPROVED'}" />        
+    </invokers>
+    <code class="com.rameses.gov.etracs.landtax.models.FixLedgerModel" />
+    <pages>
+        <page template="com.rameses.gov.etracs.landtax.views.FixLedgerPage" />
+    </pages>      
+</workunit>

@@ -1,0 +1,17 @@
+<workunit extends="com/rameses/seti2/templates/CrudList.xml"
+    schemaName="rptcompromise"
+    cols="state,txnno,txndate,rptledger.tdno,rptledger.fullpin,rptledger.owner.name,rptledger.administrator.name,enddate,term,numinstallment,amount"
+    allowDelete="#{entity &amp;&amp; entity.state == 'DRAFT'}"
+>
+    <invokers>
+        <invoker folderid="/menucategory/landtax/mgmt" 
+                action="init" caption="Compromise Agreements" 
+                target="window" 
+                index="10"  
+                role="SHARED" permission="rptcompromise.list"/>
+    </invokers>
+    <code class="com.rameses.gov.etracs.landtax.models.RPTCompromiseListModel" />
+    <pages>
+        <page name="queryForm" template="com.rameses.gov.etracs.landtax.views.StateQueryPage"/>
+    </pages>
+</workunit>

@@ -1,0 +1,13 @@
+<workunit>
+    <invokers>
+        <invoker type="rptledger:form:menuActions" 
+                 action="init" caption="Change State" 
+                 role="ADMIN" permission="rptledger.changestate"
+                 visibleWhen="#{entity.state.matches('APPROVED|CANCELLED')}" 
+                 target="popup" index="50000" />        
+    </invokers>
+    <code class="com.rameses.gov.etracs.landtax.models.ChangeStateModel" />
+    <pages>
+        <page template="com.rameses.gov.etracs.landtax.views.ChangeStatePage" />
+    </pages>    
+</workunit>

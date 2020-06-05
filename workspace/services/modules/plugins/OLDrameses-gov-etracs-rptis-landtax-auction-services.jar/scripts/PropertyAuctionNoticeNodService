@@ -1,0 +1,138 @@
+import com.rameses.annotations.*
+import com.rameses.common.*;
+import com.rameses.util.*
+import com.rameses.services.extended.*
+
+
+class PropertyAuctionNoticeNodService
+{
+    @Env
+    def env
+
+    @Service('DateService')
+    def dtSvc 
+
+    @Service('SequenceService')
+    def seqSvc
+
+    @Service('RPTUtil')
+    def util
+
+    @Service('RPTBillingService')
+    def billingSvc
+
+    @Service('ReportParameterService')
+    def paramSvc 
+
+    @Service('PropertyAuctionNoticeService')
+    def noticeSvc  
+
+    @Service('PropertyAuctionRuleService')
+    def ruleSvc 
+
+    @DataContext('propertyauction_notice')
+    def em_propertyauction_notice
+
+    @DataContext('rptledger')
+    def em_rptledger 
+
+    @ActiveDB('propertyauction_notice')
+    def em
+
+    @ProxyMethod
+    public def loadNotice( rptledger ) {
+        def nod = getOpenNotice(rptledger)
+
+        if (nod){
+            return noticeSvc.open(nod)
+        } else {
+            nod = [:]
+            nod.objid = 'NOD' + new java.rmi.server.UID()
+            nod.isnew = true 
+            nod.rptledger = rptledger
+            nod.dtcomputed = dtSvc.serverYear + '-12-31'
+            nod.includecy = true 
+        }
+
+        def p = paramSvc.getStandardParameter()
+        nod.treasurer = [name:p.TREASURERNAME, title:p.TREASURERTITLE]
+        return nod 
+    }
+
+    void validate(nod, pdate){
+        // validate dtcomputed
+        def currdate = dtSvc.parse('yyyy-MM-dd', dtSvc.format('yyyy-MM-dd', pdate.date))
+        nod.dtcomputed = dtSvc.parse('yyyy-MM-dd', nod.dtcomputed)
+        if (nod.dtcomputed.before(currdate))
+            throw new Exception('Date Computed must be greater than or equal to current date.')
+
+        // validate lastyearpaid must be less than cy - 1
+        def rptledger = em_rptledger.select('lastyearpaid').find([objid:nod.rptledger.objid]).first()
+        if (!rptledger) throw new Exception('Ledger does not exist or has already been deleted.')
+        if (rptledger.lastyearpaid >= (pdate.year - 1))
+            throw new Exception('Unable to generate notice. The ledger must have at least one year of delinquency.')
+    }
+
+    @ProxyMethod 
+    public def createNotice(nod){
+        def notice = getOpenNotice(nod.rptledger)
+        if (notice) {
+            def msg = 'A notice has already been created for this ledger.\n'
+            msg += 'See the Auction Notices for details.'
+            throw new Exception(msg)
+        }
+
+        nod.rptledger = em_rptledger.find([objid: nod.rptledger.objid]).first()
+
+        def currdate = dtSvc.parseCurrentDate()
+        validate(nod, currdate)
+        
+        def bill = billingSvc.initBill(null)
+        bill.billdate = nod.dtcomputed
+        bill.rptledgerid = nod.rptledger.objid
+        billingSvc.generateBill(bill)
+        
+        bill.cyfilter = ' AND bi.year < $P{cy} '
+        if (nod.includecy){
+            bill.cyfilter = ' AND bi.year <= $P{cy} '
+        }
+
+        def items = em.getBilledItems(bill)
+        if (!items) throw new Exception('Delinquency items cannot be loaoded.\nPlease contact Administrator for assistance.')
+
+        nod.items = items 
+        nod.state = 'FORDELIVERY'
+        nod.step = [objid:'NOD']
+        nod.step = nod.step
+        nod.txndate = currdate.date 
+        nod.txnno = 'NOD-' + currdate.year + seqSvc.getNextFormattedSeries('NOD-' + currdate.year)
+        nod.period = items.first().fromyear + ' - ' + items.last().toyear 
+        nod.fromyear = items.first().fromyear
+        nod.toyear = items.last().toyear 
+        nod.basic = items.basic.sum()
+        nod.basicint = items.basicint.sum()
+        nod.basicdisc = items.basicdisc.sum()
+        nod.sef = items.sef.sum()
+        nod.sefint = items.sefint.sum()
+        nod.sefdisc = items.sefdisc.sum()
+        nod.basicidle = items.basicidle.sum()
+        nod.basicidleint = items.basicidleint.sum()
+        nod.basicidledisc = items.basicidledisc.sum()
+        nod.firecode = items.firecode.sum()
+        nod.amtdue = items.amtdue.sum()
+        nod.costofsale = ruleSvc.calcCostOfSale(nod)
+        nod.createdby = [name:env.FULLNAME, title: env.JOBTITLE]
+        nod.validuntil = dtSvc.getMonthEndDate(bill.billdate)
+        em_propertyauction_notice.create(nod)
+        return em_propertyauction_notice.read(nod)
+    }
+
+    def getOpenNotice(rptledger) {
+        return em_propertyauction_notice
+                .where("rptledger_objid = :objid and state <> 'CLOSED'", rptledger)
+                .first()
+    }
+
+}
+
+
