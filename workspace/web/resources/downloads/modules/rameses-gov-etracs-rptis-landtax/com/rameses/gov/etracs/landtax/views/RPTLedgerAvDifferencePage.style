@@ -1,7 +1,0 @@
-"difference.year" [mode == 'create']{
-    enabled: true;
-}
-
-"difference.year" [mode != 'create']{
-    enabled: false;
-}

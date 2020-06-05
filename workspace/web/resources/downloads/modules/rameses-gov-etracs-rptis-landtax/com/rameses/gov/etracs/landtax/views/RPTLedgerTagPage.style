@@ -1,7 +1,0 @@
-"removeTag" [selectedItem == null] {
-    enabled:false;
-}
-
-"removeTag" [selectedItem != null] {
-    enabled:true;
-}

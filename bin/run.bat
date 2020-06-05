@@ -1,6 +1,11 @@
 @echo off
-
-del .osiris_pid
+setlocal enableDelayedExpansion
+if exist env.conf (
+	for /f "delims=" %%x in (env.conf) do (
+		set str=%%x
+		if not "!str:~0,1!" == "#" set "%%x" 
+	) 
+) 
 
 rem Specify the java home directory 
 rem set JAVA_HOME=@javahome
@@ -16,13 +21,13 @@ cd ..
 rem This will be the base directory
 set BASE_DIR=%cd%
 
-set JAVA_OPTS="-Xms1024m -Xmx2048m -Dosiris.run.dir=%RUN_DIR% -Dosiris.base.dir=%BASE_DIR%"
+set JAVA_OPTS="-Xmx4096m -Dosiris.run.dir=%RUN_DIR% -Dosiris.base.dir=%BASE_DIR%"
 
 
 echo.
 echo.========================================================================
 echo.
-echo   Osiris3 Server (ETRACS v2.55) 
+echo   Osiris3 Server (ETRACS) 
 echo.
 echo   JAVA        : %JAVA%
 echo   JAVA_HOME   : %JAVA_HOME%
@@ -32,4 +37,5 @@ echo.========================================================================
 echo.
 
 "%JAVA%" "%JAVA_OPTS%" -cp lib/*;. com.rameses.main.bootloader.MainBootLoader
+endlocal
 pause

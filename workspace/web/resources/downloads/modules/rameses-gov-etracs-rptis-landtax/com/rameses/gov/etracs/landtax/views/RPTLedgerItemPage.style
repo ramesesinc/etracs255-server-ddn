@@ -1,7 +1,0 @@
-"item.year" [mode=='create']{
-    enabled:true;
-}
-
-"item.year" [mode!='create']{
-    enabled:false;
-}

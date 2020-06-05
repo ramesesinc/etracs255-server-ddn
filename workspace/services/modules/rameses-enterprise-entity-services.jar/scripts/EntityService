@@ -36,7 +36,6 @@ class EntityService
 	@ProxyMethod
 	public def save( o ) { 
 		o._schemaname = 'entity';
-		if (!o.state) o.state = 'ACTIVE'
 		persistenceSvc.save( o ); 
 
 		o._schemaname = 'entity' + o.type.toString().toLowerCase(); 

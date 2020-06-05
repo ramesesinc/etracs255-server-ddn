@@ -1,5 +1,5 @@
 dialect=mysql
 driverClass=com.mysql.jdbc.Driver
-url=jdbc:mysql://localhost/etracs_image
-user=root
-pwd=1234
+url=jdbc:mysql://${dbserver_host}/${db_image}
+user=${dbserver_user}
+pwd=${dbserver_pass}
