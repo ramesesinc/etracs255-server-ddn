@@ -33,7 +33,7 @@ from subdividedland sl
 	inner join entity e on f.taxpayer_objid = e.objid
 	inner join propertyclassification pc on r.classification_objid = pc.objid
 where sl.subdivisionid = $P{objid}
-order by fullpin, tdno, blockno, cadastrallotno
+order by blockno, cadastrallotno
 
 
 [getMotherLandsSummary]

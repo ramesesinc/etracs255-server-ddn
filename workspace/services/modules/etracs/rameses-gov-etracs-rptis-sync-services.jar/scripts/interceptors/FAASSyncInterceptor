@@ -33,10 +33,22 @@ class FAASSyncInterceptor
         syncSvc.createDataForSync(getDataForSync(faas, 'FAAS-DATACAPTURE'))
     }   
 
+    @After(pattern="MunicipalityFAASService.resendToProvince", eval="#{result.datacapture == true}", index=50000) 
+    public void resendCaptureToProvince( evt ) {
+        def faas = evt.result 
+        syncSvc.createDataForSync(getDataForSync(faas, 'FAAS-DATACAPTURE'))
+    }   
+
     @After(pattern="FAASWorkflowService.signal", eval="#{args[0].state == 'approver' && args[0].action == 'approve'}", index=50000) 
     public void createOnlineApprovedFAAS( evt ) {
         def faas = evt.args[0].data 
         faas.putAll(faasSvc.approveFaas(faas))
+        syncSvc.createDataForSync(getDataForSync(faas, 'FAAS-APPROVAL'))
+    }   
+    
+    @After(pattern="FAASService.resendToMunicipality", index=50000) 
+    public void resendToMunicipality( evt ) {
+        def faas = evt.result
         syncSvc.createDataForSync(getDataForSync(faas, 'FAAS-APPROVAL'))
     }   
 
@@ -45,6 +57,19 @@ class FAASSyncInterceptor
         def faas = evt.args[0].data 
         syncSvc.createDataForSync(getDataForSync(faas, 'FAAS-PROVINCE-APPROVAL'))
     }       
+
+    @After(pattern="MunicipalityFAASService.resendToProvince", eval="#{result.datacapture == false && result.taskstate == 'provapprover'}", index=50000) 
+    public void resendForApprovalToProvince( evt ) {
+        def faas = evt.result 
+        syncSvc.createDataForSync(getDataForSync(faas, 'FAAS-PROVINCE-APPROVAL'))
+    }   
+
+    @After(pattern="MunicipalityFAASService.resendRequirements", eval="#{result.datacapture == false && result.taskstate == 'provapprover'}", index=50000) 
+    public void resendRequirementsToProvince( evt ) {
+        def faas = evt.result 
+        syncSvc.createDataForSync(getDataForSync(faas, 'FAAS-REQUIREMENTS'))
+    }   
+
 
     // @After(pattern="FAASService.deleteFaas") 
     // public void createDeleteFaas( evt ) {
@@ -96,6 +121,7 @@ class FAASSyncInterceptor
         data.orgid = env.ORGID
         data.action = action
         data.info = [:]
+        println "DATA => " + data
         return data
     }
 }

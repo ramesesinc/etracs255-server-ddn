@@ -64,10 +64,18 @@ class AFTxnInterceptor {
 	public void afterOpen( evt ) { 
 		def result = evt.result;
 
-		if ( result.user?.objid ) {
-			def user = user_db.find([ objid: result.user?.objid ]).select('objid,jobtitle').first(); 
-			if ( user ) {
-				result.user.title = user.jobtitle; 
+		def users = [result.user, result.issueto].findAll{( it )}
+		users.each{ o-> 
+			def user = user_db.find([ objid: o.objid.toString() ]).select('objid,jobtitle').first();
+			if ( user ) o.title = user.jobtitle; 
+		} 	
+
+		result.requester = [objid: null]; 
+		if ( result.request?.objid ) {
+			def req = afReq.find([ objid: result.request.objid ]).select('dtfiled,requester.*').first(); 
+			if ( req ) {
+				result.requester = req.requester; 
+				result.request.dtfiled = req.dtfiled;
 			}
 		}
 

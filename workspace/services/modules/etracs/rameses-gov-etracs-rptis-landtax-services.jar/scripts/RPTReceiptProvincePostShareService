@@ -84,10 +84,7 @@ class RPTReceiptProvincePostShareService
 	}
 
 	void saveShares(ledger) {
-		// post brgyshares and commonshares
-		//clear rptpayment_shares 
-		em_rptpayment_share.find([parentid: ledger.paymentid]).delete()
-
+		
 		//post mainshares
 		ledger.mainshares.each {ms ->
 			em_rptpayment_share.create(ms)

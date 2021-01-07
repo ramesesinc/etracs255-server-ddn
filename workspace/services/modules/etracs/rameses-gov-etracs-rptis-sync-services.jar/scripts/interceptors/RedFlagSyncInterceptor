@@ -24,14 +24,13 @@ class RedFlagSyncInterceptor
     * SCHEDULING SUPPORT
     *
     ---------------------------------------------------------*/
-    @After(pattern="ProvinceRedFlagService.postRedFlag") 
+    @After(pattern="ProvinceRedFlagService.(postRedFlag|resendToMunicipality)") 
     public void scheduleSubmitToMunicipality( evt ) {
         def redflag = evt.result
         syncSvc.createDataForSync(getDataForSync(redflag, 'RPT-REDFLAG-FOR-MUNICIPALITY'))
-        // redFlagSync.scheduleSubmitToMunicipality(redflag)
     }
 
-    @After(pattern="MunicipalityRedFlagService.resolveRedFlag") 
+    @After(pattern="MunicipalityRedFlagService.(resolveRedFlag)") 
     public void scheduleResolvedRedFlag( evt ) {
         def redflag = evt.result
         syncSvc.createDataForSync(getDataForSync(redflag, 'RPT-REDFLAG-RESOLVED'))

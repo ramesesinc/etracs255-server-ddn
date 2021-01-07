@@ -17,7 +17,7 @@ class FaasMachReportInterceptor
 	@Service('FAASReportService')
 	def faasReportSvc 
 
-	def MACH_DETAIL_ROWS = 12
+	def MACH_DETAIL_ROWS = 15
 
 
 	@After(pattern="FAASReportService.getReportData", eval="#{result.rpu.rputype=='mach'}")
@@ -81,7 +81,7 @@ class FaasMachReportInterceptor
 			if( it.othercost )
 				additionalcost.add( it.othercost )
 				
-			def depreciation = numberSvc.format("#,##0.00", it.depreciation) + ' %'
+			def depreciation = numberSvc.format("#,##0.0000", it.depreciation) + ' %'
 			
 			it.machinename 		= it.machine.name 
 			it.additionalcost	= additionalcost
