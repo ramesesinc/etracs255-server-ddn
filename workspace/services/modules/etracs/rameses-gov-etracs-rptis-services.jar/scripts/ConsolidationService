@@ -332,8 +332,6 @@ class ConsolidationService
 
     @ProxyMethod
     public void initApprove(consolidation) {
-        em.deleteConsolidatedPreviousFaas(consolidation)
-        em.insertConsolidatedPreviousFaas(consolidation)
     }
 
     @ProxyMethod

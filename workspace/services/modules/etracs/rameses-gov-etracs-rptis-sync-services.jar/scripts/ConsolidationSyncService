@@ -45,6 +45,7 @@ class ConsolidationSyncService
 	def getActions(){
 		return  [
 	    	'CONSOLIDATION-FORAPPROVAL': [send: getForApproval, receive: postForApproval, schedule: scheduleSubmitToProvince],
+	    	'CONSOLIDATION-REQUIREMENTS': [send: {}, receive: {}, schedule: scheduleRequirements],
 	    	'CONSOLIDATION-FAAS-APPROVED': [send: getApprovedFaas, receive: postApprovedFaas, schedule: {}],
 	    	'CONSOLIDATION-APPROVED': [send: getApprovedConsolidation, receive: postApprovedConsolidation, schedule: scheduleConsolidationApproval],
 	    ]
@@ -109,6 +110,10 @@ class ConsolidationSyncService
 
         rptSync.scheduleExaminations(syncdata, consolidation.objid)
     	rptSync.scheduleRequirements(syncdata, consolidation.objid)
+	}
+
+	def scheduleRequirements = {syncdata, consolidation ->
+		rptSync.scheduleRequirements(syncdata, consolidation.objid)
 	}
 
 	def scheduleConsolidationApproval = {syncdata, consolidation ->

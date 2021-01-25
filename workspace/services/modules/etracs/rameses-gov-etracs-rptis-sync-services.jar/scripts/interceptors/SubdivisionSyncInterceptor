@@ -30,11 +30,30 @@ class SubdivisionSyncInterceptor
         syncSvc.createDataForSync(getDataForSync(subdivision, 'SUBDIVISION-FORAPPROVAL'))
     }
 
+    @After(pattern="MunicipalitySubdivisionSupport2Service.resendToProvince", index=10000) 
+    public void scheduleResendToProvince( evt ) {
+        def subdivision = evt.result;
+        syncSvc.createDataForSync(getDataForSync(subdivision, 'SUBDIVISION-FORAPPROVAL'))
+    }
+
+    @After(pattern="MunicipalitySubdivisionSupport2Service.resendRequirements", index=10000) 
+    public void scheduleResendRequirements( evt ) {
+        def subdivision = evt.result;
+        syncSvc.createDataForSync(getDataForSync(subdivision, 'SUBDIVISION-REQUIREMENTS'))
+    }
+
     @After(pattern="SubdivisionWorkflowService.signal", eval="#{args[0].state.matches('approver|provapprover') && args[0].action=='completed'}", index=10000) 
     public void scheduleSubdivisionApproval( evt ) {
         def subdivision = evt.args[0].data;
         syncSvc.createDataForSync(getDataForSync(subdivision, 'SUBDIVISION-APPROVED'))
     }
+
+    @After(pattern="SubdivisionService.resendToMunicipality", index=10000) 
+    public void resendToMunicipality( evt ) {
+        def subdivision = evt.result;
+        syncSvc.createDataForSync(getDataForSync(subdivision, 'SUBDIVISION-APPROVED'))
+    }
+    
 
     // @After(pattern="SubdivisionWorkflowService.signal", eval="#{args[0].action=='disapprove'}", index=10000) 
     // public void scheduleSubdivisionDisapproval( evt ) {

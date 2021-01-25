@@ -373,6 +373,8 @@ public class BatchGRService
     		.list().each {
     			faasSvc.deleteFaasById(it.newfaasid)
     		}
+
+        txnRefSvc.delete(entity.objid);
     }
 
     void createItemsTxnRef(entity) {
@@ -397,6 +399,7 @@ public class BatchGRService
     			em_faas_list.find([objid: it.newfaasid]).update(updateInfo)
     		}
     		em_batchgr_item.delete(it)
+            txnRefSvc.deleteByObjid(it.parent.objid, it.objid)
     	}
     	
     }

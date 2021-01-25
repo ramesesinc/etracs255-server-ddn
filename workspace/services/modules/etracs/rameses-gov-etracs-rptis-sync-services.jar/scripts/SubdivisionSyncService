@@ -67,6 +67,7 @@ class SubdivisionSyncService
     def getActions(){
 		return  [
 	    	'SUBDIVISION-FORAPPROVAL': [send: getForApproval, receive: postForApproval, schedule: scheduleSubmitToProvince],
+	    	'SUBDIVISION-REQUIREMENTS': [send: {}, receive: {}, schedule: scheduleRequirements],
 	    	'SUBDIVISION-FAAS-APPROVED': [send: getApprovedFaas, receive: postApprovedFaas, schedule: {}],
 	    	'SUBDIVISION-APPROVED': [send: getApprovedSubdivision, receive: postApprovedSubdivision, schedule: scheduleSubdivisionApproval],
 	    	'SUBDIVISION-DISAPPROVAL': [send: getDisapprovedSubdivision, receive: postDisapprovedSubdivision, schedule: scheduleSubdivisionDisapproval],
@@ -140,6 +141,12 @@ class SubdivisionSyncService
         syncdata.dependedaction = null
 
         rptSync.scheduleExaminations(syncdata, subdivision.objid)
+    	rptSync.scheduleRequirements(syncdata, subdivision.objid)
+	}
+
+	def scheduleRequirements = {syncdata, subdivision ->
+		syncdata.info = syncdata.info ? syncdata.info : [:]
+    	syncdata.info.txntype = 'SD'
     	rptSync.scheduleRequirements(syncdata, subdivision.objid)
 	}
 

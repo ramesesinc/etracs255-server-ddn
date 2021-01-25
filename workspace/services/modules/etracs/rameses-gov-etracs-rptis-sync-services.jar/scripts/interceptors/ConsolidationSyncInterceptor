@@ -28,14 +28,30 @@ class ConsolidationSyncInterceptor
     public void scheduleSubmitToProvince( evt ) {
         def consolidation = evt.args[0].data;
         syncSvc.createDataForSync(getDataForSync(consolidation, 'CONSOLIDATION-FORAPPROVAL'))
-        // consolidationSync.scheduleSubmitToProvince(consolidation)
+    }
+
+    @After(pattern="MunicipalityConsolidationSupportService.resendToProvince", index=10000) 
+    public void resendToProvince( evt ) {
+        def consolidation = evt.result;
+        syncSvc.createDataForSync(getDataForSync(consolidation, 'CONSOLIDATION-FORAPPROVAL'))
+    }
+
+    @After(pattern="MunicipalityConsolidationSupportService.resendRequirements", index=10000) 
+    public void resendRequirements( evt ) {
+        def consolidation = evt.result;
+        syncSvc.createDataForSync(getDataForSync(consolidation, 'CONSOLIDATION-REQUIREMENTS'))
     }
 
     @After(pattern="ConsolidationWorkflowService.signal", eval="#{args[0].state.matches('approver|provapprover') && args[0].action=='completed'}", index=10000) 
     public void scheduleConsolidationApproval( evt ) {
         def consolidation = evt.args[0].data;
         syncSvc.createDataForSync(getDataForSync(consolidation, 'CONSOLIDATION-APPROVED'))
-        // consolidationSync.scheduleConsolidationApproval(consolidation)
+    }
+
+    @After(pattern="ConsolidationService.resendToMunicipality", index=10000) 
+    public void resendToMunicipality( evt ) {
+        def consolidation = evt.result;
+        syncSvc.createDataForSync(getDataForSync(consolidation, 'CONSOLIDATION-APPROVED'))
     }
 
     /* scheduler */
