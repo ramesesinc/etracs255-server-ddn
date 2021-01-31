@@ -7,18 +7,18 @@ import com.rameses.services.extended.*
 * FAAS Annotation Synchronization support shared 
 * between province and municipalities 
 -----------------------------------------------------------------*/
-class FAASAnnotationSyncInterceptor
+class FAASAnnotationSyncDataInterceptor
 {
     @Env
     def env
 
-    @Service('RPTMainSyncService')
+    @Service('RPTMainSyncDataService')
     def mainSyncSvc
 
-    @Service('RPTSyncService')
+    @Service('RPTSyncDataService')
     def syncSvc
 
-    @Service('FAASAnnotationSyncService')
+    @Service('FAASAnnotationSyncDataService')
     def annotationSync
 
 
@@ -41,7 +41,7 @@ class FAASAnnotationSyncInterceptor
 
 
     /* scheduler */    
-    @After(pattern="RPTMainSyncService.scheduleSync", eval="#{result.action.matches('FAASANNOTATION-.*')}", index=50000) 
+    @After(pattern="RPTMainSyncDataService.scheduleSync", eval="#{result.action.matches('FAASANNOTATION-.*')}", index=50000) 
     public void scheduleFAASForSync( evt ) {
         def data = evt.result 
         annotationSync.schedule(data)
@@ -53,17 +53,16 @@ class FAASAnnotationSyncInterceptor
     * SEND/RECEIVE HANDLERS
     *
     ---------------------------------------------------------*/
-    @After(pattern="RPTMainSyncService.asyncSend", eval="#{result.action.matches('FAASANNOTATION-.*')}") 
-    public void sendData( evt ) {
+    @After(pattern="RPTMainSyncDataService.asyncSend", eval="#{result.action.matches('FAASANNOTATION-.*')}") 
+    public void send( evt ) {
         def syncdata = evt.result 
         annotationSync.send(syncdata)
     }   
 
-    @After(pattern="RPTMainSyncService.receive", eval="#{args[0].action.matches('FAASANNOTATION-.*')}") 
+    @After(pattern="RPTMainSyncDataService.receive", eval="#{args[0].action.matches('FAASANNOTATION-.*')}") 
     public void receiveData(evt){
         def syncdata = evt.args[0]
         annotationSync.receive(syncdata)
-        evt.result.status = 'OK'
     }
 
 

@@ -11,7 +11,7 @@ import com.rameses.util.Base64Cipher
 class RPTSyncInterceptor
 {
     @Service('RPTMainSyncService')
-    def syncSvc 
+    def mainSyncSvc 
 
     @Service('ExaminationService')
     def examinationSvc
@@ -36,7 +36,7 @@ class RPTSyncInterceptor
         def syncdata = evt.result 
         def examination = examinationSvc.open([objid: syncdata.refid])
         if (examination) {
-            syncSvc.send2(syncdata, examination)
+            mainSyncSvc.send2(syncdata, examination)
         }
         println 'Examination sent to remote.'        
     }   
@@ -62,7 +62,7 @@ class RPTSyncInterceptor
         def syncdata = evt.result 
         def requirement = reqSvc.open([objid: syncdata.refid])
         if (requirement) {
-            syncSvc.send2(syncdata, requirement)
+            mainSyncSvc.send2(syncdata, requirement)
         }
 
         println 'Requirement sent to remote.'        
@@ -88,7 +88,7 @@ class RPTSyncInterceptor
         def syncdata = evt.result 
         def header = em_image_header.find([objid: syncdata.refid]).first()
         if (header) {
-            syncSvc.send2(syncdata, header)
+            mainSyncSvc.send2(syncdata, header)
         }
     }   
 
@@ -112,7 +112,7 @@ class RPTSyncInterceptor
         def chunk = em_image_chunk.find([objid: syncdata.refid]).first()
         if (chunk) {
             Base64Cipher cipher = new Base64Cipher()
-            syncSvc.send2(syncdata, cipher.encode(chunk))
+            mainSyncSvc.send2(syncdata, cipher.encode(chunk))
         }
     }   
 

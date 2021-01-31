@@ -3,18 +3,18 @@ import com.rameses.common.*
 import com.rameses.services.extended.*
 
 
-class RPTImageSyncInterceptor
+class RPTImageSyncDataInterceptor
 {
     @Env
     def env
 
-    @Service('RPTMainSyncService')
+    @Service('RPTMainSyncDataService')
     def mainSyncSvc
 
-    @Service('RPTSyncService')
+    @Service('RPTSyncDataService')
     def syncSvc
 
-    @Service('RPTImageSyncService')
+    @Service('RPTImageSyncDataService')
     def imageSync
 
 
@@ -30,7 +30,7 @@ class RPTImageSyncInterceptor
     }
 
         /* scheduler */
-    @After(pattern="RPTMainSyncService.scheduleSync", eval="#{result.action.matches('RPT-IMAGE-RESEND')}", index=50000) 
+    @After(pattern="RPTMainSyncDataService.scheduleSync", eval="#{result.action.matches('RPT-IMAGE-RESEND')}", index=50000) 
     public void scheduleResendImage( evt ) {
         def data = evt.result 
         imageSync.schedule(data)

@@ -7,18 +7,18 @@ import com.rameses.services.extended.*
 * Ledger Synchronization support shared 
 * between province and municipalities 
 -----------------------------------------------------------------*/
-class RPTLedgerSyncInterceptor
+class RPTLedgerSyncDataInterceptor
 {
    @Env
     def env
 
-    @Service('RPTMainSyncService')
+    @Service('RPTMainSyncDataService')
     def mainSyncSvc 
 
-    @Service('RPTSyncService')
+    @Service('RPTSyncDataService')
     def syncSvc
 
-    @Service('RPTLedgerSyncService')
+    @Service('RPTLedgerSyncDataService')
     def  ledgerSync
 
     @DataContext('rptledger')
@@ -72,7 +72,7 @@ class RPTLedgerSyncInterceptor
 
 
     /* schedule */
-    @After(pattern="RPTMainSyncService.scheduleSync", eval="#{result.action.matches('RPTLEDGER-.*')}", index=50000) 
+    @After(pattern="RPTMainSyncDataService.scheduleSync", eval="#{result.action.matches('RPTLEDGER-.*')}", index=50000) 
     public void scheduleForSync( evt ) {
         def data = evt.result 
         ledgerSync.schedule(data)
@@ -84,17 +84,16 @@ class RPTLedgerSyncInterceptor
     * SEND/RECEIVE HANDLERS
     *
     ---------------------------------------------------------*/
-    @After(pattern="RPTMainSyncService.asyncSend", eval="#{result.action.matches('RPTLEDGER-.*')}") 
-    public void sendData( evt ) {
+    @After(pattern="RPTMainSyncDataService.asyncSend", eval="#{result.action.matches('RPTLEDGER-.*')}") 
+    public void send( evt ) {
         def syncdata = evt.result 
         ledgerSync.send(syncdata)
     }        
 
-    @After(pattern="RPTMainSyncService.receive", eval="#{args[0].action.matches('RPTLEDGER-.*')}") 
+    @After(pattern="RPTMainSyncDataService.receive", eval="#{args[0].action.matches('RPTLEDGER-.*')}") 
     public void receiveData(evt){
         def syncdata = evt.args[0]
         ledgerSync.receive(syncdata)
-        evt.result.status = 'OK'
     }
 
 

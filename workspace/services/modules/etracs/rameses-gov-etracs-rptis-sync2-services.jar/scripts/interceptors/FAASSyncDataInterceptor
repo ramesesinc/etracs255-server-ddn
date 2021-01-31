@@ -7,18 +7,18 @@ import com.rameses.services.extended.*
 * FAAS Synchronization support shared 
 * between province and municipalities 
 -----------------------------------------------------------------*/
-class FAASSyncInterceptor
+class FAASSyncDataInterceptor
 {
     @Env
     def env
 
-    @Service('RPTMainSyncService')
+    @Service('RPTMainSyncDataService')
     def mainSyncSvc
 
-    @Service('RPTSyncService')
+    @Service('RPTSyncDataService')
     def syncSvc
 
-    @Service('FAASSyncService')
+    @Service('FAASSyncDataService')
     def faasSync 
 
     @Service('FAASService')
@@ -74,13 +74,13 @@ class FAASSyncInterceptor
     }   
 
 
-    // @After(pattern="FAASService.deleteFaas") 
-    // public void createDeleteFaas( evt ) {
-    //     def faas = evt.args[0]
-    //     if (faas) {
-    //         mainSyncSvc.createDataForSync(getDataForSync(faas, 'FAAS-DELETE'))
-    //     }
-    // }
+    @After(pattern="FAASService.deleteFaas") 
+    public void createDeleteFaas( evt ) {
+        def faas = evt.args[0]
+        if (faas) {
+            mainSyncSvc.createDataForSync(getDataForSync(faas, 'FAAS-DELETE'))
+        }
+    }
 
     @After(pattern="FAASService.revertToInterim") 
     public void createRevertToInterim( evt ) {
@@ -90,7 +90,7 @@ class FAASSyncInterceptor
 
 
     /* scheduler */
-    @After(pattern="RPTMainSyncService.scheduleSync", eval="#{result.action.matches('FAAS-.*')}", index=50000) 
+    @After(pattern="RPTMainSyncDataService.scheduleSync", eval="#{result.action.matches('FAAS-.*')}", index=50000) 
     public void scheduleFAASForSync( evt ) {
         def data = evt.result 
         faasSync.schedule(data)
@@ -99,20 +99,17 @@ class FAASSyncInterceptor
 
     /*---------------------------------------------------------
     *
-    * SEND/RECEIVE HANDLERS
+    * UPLOAD/DOWNLOAD SUPPORT
     *
     ---------------------------------------------------------*/
-    @After(pattern="RPTMainSyncService.asyncSend", eval="#{result.action.matches('FAAS-.*')}") 
-    public void sendData( evt ) {
-        def syncdata = evt.result 
-        faasSync.send(syncdata)
+    @After(pattern="RPTMainSyncDataService.asyncSend", eval="#{args[0].action.matches('FAAS-.*')}") 
+    public void send( evt ) {
+        faasSync.send(evt.args[0])
     }   
 
-    @After(pattern="RPTMainSyncService.receive", eval="#{args[0].action.matches('FAAS-.*')}") 
+    @After(pattern="RPTMainSyncDataService.receive", eval="#{args[0].action.matches('FAAS-.*')}") 
     public void receiveData(evt){
-        def syncdata = evt.args[0]
-        faasSync.receive(syncdata)
-        evt.result.status = 'OK'
+        faasSync.receive(evt.args[0])
     }
 
 
@@ -121,10 +118,10 @@ class FAASSyncInterceptor
         data.objid = faas.objid
         data.reftype = 'faas'
         data.refno = (faas.tdno ? faas.tdno : faas.utdno)
+        data.action = action
         data.orgid = env.ORGID
         data.remote = syncSvc.getRemoteOrg(faas)
-        data.action = action
-        data.info = [:]
+        data.info = faas.info
         return data
     }
 }

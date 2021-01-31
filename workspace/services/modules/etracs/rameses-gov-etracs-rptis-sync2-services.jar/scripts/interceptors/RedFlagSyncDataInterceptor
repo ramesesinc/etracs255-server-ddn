@@ -7,18 +7,18 @@ import com.rameses.services.extended.*
 * Red Flag Synchronization support shared 
 * between province and municipalities 
 -----------------------------------------------------------------*/
-class RedFlagSyncInterceptor
+class RedFlagSyncDataInterceptor
 {
     @Env
     def env
 
-    @Service('RPTMainSyncService')
+    @Service('RPTMainSyncDataService')
     def mainSyncSvc
 
-    @Service('RPTSyncService')
+    @Service('RPTSyncDataService')
     def syncSvc
 
-    @Service('RedFlagSyncService')
+    @Service('RedFlagSyncDataService')
     def redFlagSync 
 
 
@@ -46,7 +46,7 @@ class RedFlagSyncInterceptor
     }
 
     /* scheduler */
-    @After(pattern="RPTMainSyncService.scheduleSync", eval="#{result.action.matches('RPT-REDFLAG-.*')}", index=50000) 
+    @After(pattern="RPTMainSyncDataService.scheduleSync", eval="#{result.action.matches('RPT-REDFLAG-.*')}", index=50000) 
     public void scheduleForSync( evt ) {
         def data = evt.result 
         redFlagSync.schedule(data)
@@ -58,17 +58,16 @@ class RedFlagSyncInterceptor
     * SEND/RECEIVE HANDLERS
     *
     ---------------------------------------------------------*/
-    @After(pattern="RPTMainSyncService.asyncSend", eval="#{result.action.matches('RPT-REDFLAG-.*')}") 
-    public void sendData( evt ) {
+    @After(pattern="RPTMainSyncDataService.asyncSend", eval="#{result.action.matches('RPT-REDFLAG-.*')}") 
+    public void send( evt ) {
         def syncdata = evt.result 
         redFlagSync.send(syncdata)
     }   
 
-    @After(pattern="RPTMainSyncService.receive", eval="#{args[0].action.matches('RPT-REDFLAG-.*')}") 
+    @After(pattern="RPTMainSyncDataService.receive", eval="#{args[0].action.matches('RPT-REDFLAG-.*')}") 
     public void receiveData(evt){
         def syncdata = evt.args[0]
         redFlagSync.receive(syncdata)
-        evt.result.status = 'OK'
     }
 
 
