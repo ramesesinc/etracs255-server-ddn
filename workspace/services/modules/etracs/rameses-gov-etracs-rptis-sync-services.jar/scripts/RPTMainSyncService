@@ -211,6 +211,8 @@ class RPTMainSyncService {
 
 	@ProxyMethod
 	public def createDataForSync(data) {
+		if (isNewSycnData(data)) return;
+
 		data.createdby = [objid: env.USERID, name: env.USER, title: env.JOBTITLE]
 		data.dtfiled = dtSvc.serverDate
 		em_forsync.create(data)
@@ -482,6 +484,19 @@ class RPTMainSyncService {
     	def remote = [orgid: org.rootorg.objid]
     	resetOrgErrorStatus([remote: remote])
     }
+
+	def isNewSycnData(data) {
+		def newsync = true
+		if (!'PROVINCE'.equalsIgnoreCase(data.remote.orgclass)) {
+			def newlgus = var.assesser_new_sync_lgus
+			if (newlgus) {
+				newsync = newlgus.toString().indexOf(data.remote.orgcode) >= 0
+			} else {
+				newsync = false
+			}
+		}
+		return newsync
+	}
     
 }
 

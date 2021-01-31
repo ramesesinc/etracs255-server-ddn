@@ -7,18 +7,18 @@ import com.rameses.services.extended.*
 * Consolidation Synchronization support shared 
 * between province and municipalities 
 -----------------------------------------------------------------*/
-class ConsolidationSyncInterceptor
+class ConsolidationSyncDataInterceptor
 {
     @Env
     def env
 
-    @Service('RPTMainSyncService')
+    @Service('RPTMainSyncDataService')
     def mainSyncSvc    
 
-    @Service('RPTSyncService')
+    @Service('RPTSyncDataService')
     def syncSvc
 
-    @Service('ConsolidationSyncService')
+    @Service('ConsolidationSyncDataService')
     def consolidationSync 
 
 
@@ -58,7 +58,7 @@ class ConsolidationSyncInterceptor
     }
 
     /* scheduler */
-    @After(pattern="RPTMainSyncService.scheduleSync", eval="#{result.action.matches('CONSOLIDATION-.*')}", index=50000) 
+    @After(pattern="RPTMainSyncDataService.scheduleSync", eval="#{result.action.matches('CONSOLIDATION-.*')}", index=50000) 
     public void scheduleForSync( evt ) {
         def data = evt.result 
         consolidationSync.schedule(data)
@@ -70,17 +70,16 @@ class ConsolidationSyncInterceptor
     * SEND/RECEIVE HANDLERS
     *
     ---------------------------------------------------------*/
-    @After(pattern="RPTMainSyncService.asyncSend", eval="#{result.action.matches('CONSOLIDATION-.*')}") 
-    public void sendData( evt ) {
+    @After(pattern="RPTMainSyncDataService.asyncSend", eval="#{result.action.matches('CONSOLIDATION-.*')}") 
+    public void send( evt ) {
         def syncdata = evt.result 
         consolidationSync.send(syncdata)
     }   
 
-    @After(pattern="RPTMainSyncService.receive", eval="#{args[0].action.matches('CONSOLIDATION-.*')}") 
+    @After(pattern="RPTMainSyncDataService.receive", eval="#{args[0].action.matches('CONSOLIDATION-.*')}") 
     public void receiveData(evt){
         def syncdata = evt.args[0]
         consolidationSync.receive(syncdata)
-        evt.result.status = 'OK'
     }
 
 

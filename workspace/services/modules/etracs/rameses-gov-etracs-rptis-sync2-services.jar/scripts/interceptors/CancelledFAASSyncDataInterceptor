@@ -7,18 +7,18 @@ import com.rameses.services.extended.*
 * Cancelled FAAS Synchronization support shared 
 * between province and municipalities 
 -----------------------------------------------------------------*/
-class CancelledFAASSyncInterceptor
+class CancelledFAASSyncDataInterceptor
 {
     @Env
     def env
 
-    @Service('RPTMainSyncService')
+    @Service('RPTMainSyncDataService')
     def mainSyncSvc
 
-    @Service('RPTSyncService')
+    @Service('RPTSyncDataService')
     def syncSvc
 
-    @Service('CancelledFAASSyncService')
+    @Service('CancelledFAASSyncDataService')
     def cancelSync 
 
 
@@ -46,7 +46,7 @@ class CancelledFAASSyncInterceptor
     }
 
     /* scheduler */
-    @After(pattern="RPTMainSyncService.scheduleSync", eval="#{result.action.matches('CANCELLEDFAAS-.*')}", index=50000) 
+    @After(pattern="RPTMainSyncDataService.scheduleSync", eval="#{result.action.matches('CANCELLEDFAAS-.*')}", index=50000) 
     public void scheduleForSync( evt ) {
         def data = evt.result 
         cancelSync.schedule(data)
@@ -59,17 +59,14 @@ class CancelledFAASSyncInterceptor
     * SEND/RECEIVE HANDLERS
     *
     ---------------------------------------------------------*/
-    @After(pattern="RPTMainSyncService.asyncSend", eval="#{result.action.matches('CANCELLEDFAAS-.*')}") 
-    public void sendData( evt ) {
-        def syncdata = evt.result 
-        cancelSync.send(syncdata)
+    @After(pattern="RPTMainSyncDataService.asyncSend", eval="#{result.action.matches('CANCELLEDFAAS-.*')}") 
+    public void send( evt ) {
+        cancelSync.send(evt.result)
     }   
 
-    @After(pattern="RPTMainSyncService.receive", eval="#{args[0].action.matches('CANCELLEDFAAS-.*')}") 
+    @After(pattern="RPTMainSyncDataService.receive", eval="#{args[0].action.matches('CANCELLEDFAAS-.*')}") 
     public void receiveData(evt){
-        def syncdata = evt.args[0]
-        cancelSync.receive(syncdata)
-        evt.result.status = 'OK'
+        cancelSync.receive(evt.args[0])
     }
 
 

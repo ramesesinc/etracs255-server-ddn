@@ -1,6 +1,6 @@
 <app>
 <env>
-app.title=ETRACS 2.5 build 05 20200605 patch v255-03030(03024) / v255_20200611_patch_etracs_treasury (Province of Davao Del Norte)
+app.title=ETRACS 2.5 build 05 20200605 patch v255-rptis-03025-newsync-01 / v255_20200611_patch_etracs_treasury (Province of Davao Del Norte)
 app.host=172.16.0.8:8070
 app.cluster=osiris3
 app.context=etracs25
@@ -134,6 +134,7 @@ entity.app.context=etracs25
 	<module file="rptis/rameses-gov-etracs-rptis-landtax-report.jar" version="2.50" />
 	<module file="rptis/rameses-gov-etracs-rptis-transmittal.jar" version="2.50"/>
 	<module file="rptis/rameses-gov-etracs-rptis-sync.jar" version="2.50" />
+	<module file="rptis/rameses-gov-etracs-rptis-sync2.jar" version="1.00" />
 
     <!-- rptis lgu specific -->
 	<module file="rptis/rameses-gov-etracs-rptis-province.jar" version="2.53" />
