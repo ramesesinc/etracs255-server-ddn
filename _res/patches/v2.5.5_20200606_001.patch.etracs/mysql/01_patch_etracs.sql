@@ -6,6 +6,9 @@ alter table af_control add constraint fk_af_control_afid
 	foreign key (afid) references af (objid) 
 ; 
 
+alter table af_allocation modify objid varchar(50) character set latin1 not null 
+; 
+
 alter table af_control add constraint fk_af_control_allocid 
 	foreign key (allocid) references af_allocation (objid) 
 ; 
