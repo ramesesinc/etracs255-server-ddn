@@ -1,3 +1,0 @@
-provider=http
-http.host=localhost:${@@anubis-web:port}/poll
-http.action=queue_poll
