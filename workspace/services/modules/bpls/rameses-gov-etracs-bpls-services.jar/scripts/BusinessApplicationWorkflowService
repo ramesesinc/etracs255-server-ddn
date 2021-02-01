@@ -32,6 +32,9 @@ public class BusinessApplicationWorkflowService extends ActiveWorkflowService {
 	@DataContext('sys_wf_transition') 
 	def sys_wf_transition; 
 
+	@Service 
+	def self; 
+
 	String processname = "business_application";
 
 	void afterOpenTask(def task) {
@@ -78,8 +81,9 @@ public class BusinessApplicationWorkflowService extends ActiveWorkflowService {
 		env.TASK_MESSAGE = r.message;
 		if( r.state == 'assign-assessor') {
 			data.assessor = roleSvc.getCurrentUser();
-			ba.update( [objid:data.objid, assessor: data.assessor, state: 'ASSESSMENT'  ] );
+			ba.update([ objid: data.objid, assessor: data.assessor, state: 'ASSESSMENT' ]);
 			env.TASK_ASSIGNEE = data.assessor;	
+			self.notifyChangeAppState([ objid: data.objid, state: 'ASSESSMENT' ]); 
 		}
 		else if( r.state == 'assessment') { 
 			if ( !data.taxfees ) 
@@ -88,8 +92,10 @@ public class BusinessApplicationWorkflowService extends ActiveWorkflowService {
 			if ( r.action == 'return-for-verification') {
 				ba.update([ objid: data.objid, state: 'INFO', assessor: null ]); 
 				env.TASK_ASSIGNEE = data.createdby;
+				self.notifyChangeAppState([ objid: data.objid, state: 'INFO' ]); 
 
-			} else {
+			} 
+			else {
 				if ( !r.assignee ) throw new Exception('Please specify an assignee '); 
 				//update the taxfees
 				data.approver = r.assignee;
@@ -103,6 +109,7 @@ public class BusinessApplicationWorkflowService extends ActiveWorkflowService {
 			if ( r.action == 'return-for-verification' ) { 
 				ba.update([ objid: data.objid, state: 'INFO', assessor: null, approver: null ]); 
 				env.TASK_ASSIGNEE = data.createdby; 
+				self.notifyChangeAppState([ objid: data.objid, state: 'INFO' ]); 
 			} 
 		}
 		else if(r.state == 'approval' && r.action=='return-assessment') {
@@ -110,6 +117,7 @@ public class BusinessApplicationWorkflowService extends ActiveWorkflowService {
 		}
 		else if ( r.to == 'payment' ) { 
 			ba.update( [objid:data.objid, state:'PAYMENT'] );	
+			self.notifyChangeAppState([ objid: data.objid, state: 'PAYMENT' ]); 
 		} 		
 		else if(r.state=='payment' && r.action == 'reverse-approval') {
 			def test = receivableSvc.getHasPaidReceivable([applicationid:data.objid]);
@@ -118,9 +126,11 @@ public class BusinessApplicationWorkflowService extends ActiveWorkflowService {
 			}
 			ba.update( [objid:data.objid, state:'ASSESSMENT'] );
 			env.TASK_ASSIGNEE = data.approver;
+			self.notifyChangeAppState([ objid: data.objid, state: 'ASSESSMENT' ]); 
 		}
 		else if(r.state=='payment') { 
 			ba.update( [objid:data.objid, state:'RELEASE'] );
+			self.notifyChangeAppState([ objid: data.objid, state: 'RELEASE' ]); 
 		}
 		else if(r.state=='assign-issuing-officer') {
 			env.TASK_ASSIGNEE = roleSvc.getCurrentUser(); 
@@ -132,10 +142,12 @@ public class BusinessApplicationWorkflowService extends ActiveWorkflowService {
 				action: r.action, fromstate: r.state, tostate: 'payment' 
 			]); 
 			env.TASK_ASSIGNEE = data.approver; 
+			self.notifyChangeAppState([ objid: data.objid, state: 'PAYMENT', action: 'revert' ]); 
 		}
 		else if( r.state=='release' && r.to=='end' ) {
 			appSvc.release( data );
 			data.state = 'COMPLETED';
+			self.notifyChangeAppState([ objid: data.objid, state: data.state ]); 
 		} 
 	}
 
@@ -239,4 +251,8 @@ public class BusinessApplicationWorkflowService extends ActiveWorkflowService {
 	    }	
 	}
 
+	@ProxyMethod
+	public void notifyChangeAppState( param ) { 
+		// this will be intercepted 
+	}
 }	

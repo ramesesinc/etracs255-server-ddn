@@ -21,7 +21,7 @@ public class AssessmentBillingService {
 	@Service("FactBuilderService")
 	def factSvc;
 
-	@Service("HolidayService")
+	@Service(value="HolidayService", connection="enterprise")
 	def holidaySvc;
 
 	/*********************************************************

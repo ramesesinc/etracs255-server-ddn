@@ -12,10 +12,10 @@ public class ItemAccountUtil {
 
 	public def lookup( def acctid ) {
 		if(svc==null) {
-			svc = EntityManagerUtil.lookup( "itemaccount" );
+			svc = ServiceLookup.create( "ItemAccountLookupService", "financial");
 		}
 		if( ! map.containsKey(acctid)) {
-			def m = svc.find( [objid: acctid] ).first();	
+			def m = svc.lookup( [objid: acctid] );	
 			if( !m ) throw new Exception("Account not found in item account.  " );
 			map.put(acctid, m );
 		}
@@ -29,9 +29,9 @@ public class ItemAccountUtil {
 
 	public def createAccountFactByOrg( def parentid, def orgid ) {
 		if(svc==null) {
-			svc = EntityManagerUtil.lookup( "itemaccount" );
+			svc = ServiceLookup.create( "ItemAccountLookupService", "financial");
 		}
-		def o = svc.find([ parentid: parentid ]).where(' org.objid = :orgid ', [ orgid: orgid ]).first(); 
+		def o = svc.lookupByOrg([ parentid: parentid , orgid: orgid ]); 
 		if ( o ) {
 			return buildAccountFact( o );
 		} 
@@ -54,9 +54,9 @@ public class ItemAccountUtil {
 
 	public def lookupIdByParentAndOrg( def parentid, def orgid ) {
 		if(svc==null) {
-			svc = EntityManagerUtil.lookup( "itemaccount" );
+			svc = ServiceLookup.create( "ItemAccountLookupService", "financial");
 		}; 
-		return svc.select("objid").find( [parentid:parentid ] ).where("org.objid = :orgid", [orgid: orgid ]);
+		return svc.lookupByOrg( [parentid:parentid, orgid: orgid ])?.objid;
 	}
 
 }

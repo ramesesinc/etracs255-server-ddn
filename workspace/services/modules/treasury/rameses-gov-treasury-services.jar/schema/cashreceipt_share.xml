@@ -10,6 +10,7 @@
 			<key field="payableitem_objid" target="objid"/> 
 		</complex>
 		<field name="amount" required="true" type="decimal"/>
+		<field name="receiptitemid" />		
 	</element>
 
 </schema>

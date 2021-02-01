@@ -51,8 +51,14 @@ class BusinessClosureCertificateService {
 			info.businessname = capitalize( info.businessname ); 
 			info.tradename = capitalize( info.tradename ); 
 
+			def dtformatter = new java.text.SimpleDateFormat('MMMMM, yyyy'); 
+
 			def dtissued = info.closure.dtissued;
-			info.fulldtissued = ''+ buildDay( dtissued )+' day of '+ new java.text.SimpleDateFormat('MMMMM, yyyy').format( dtissued ); 
+			info.fulldtissued = ''+ buildDay( dtissued )+' day of '+ dtformatter.format( dtissued ); 
+
+			def dtgiven = dateSvc.getBasicServerDate(); 
+			info.dtgiven = new java.sql.Date( dtgiven.time ); 
+			info.fulldtgiven = ''+ buildDay( dtgiven )+' day of '+ dtformatter.format( dtgiven ); 
 		} 
 		return info;  
 	}
@@ -83,6 +89,8 @@ class BusinessClosureCertificateService {
 
 	def buildDay( date ){
         def dt = new java.text.SimpleDateFormat('dd').format(date);
+        if ( dt.startsWith('0')) dt = dt.substring(1); 
+        
         if( dt.matches('01|1|21|31') )
             return dt + 'st';
         else if( dt.matches('02|2|22') )

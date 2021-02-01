@@ -17,8 +17,8 @@ public class BusinessMasterService {
 	@Service("DateService")
 	def dateSvc;
 
-	@Service(value="SMSService", connection="notification_proxy") 
-	def smsSvc; 
+	@Service(dynamic=true) 
+	def dynaSvc; 
 
 	@Env
 	def env;
@@ -166,7 +166,8 @@ public class BusinessMasterService {
 	}
 
 	@ProxyMethod 
-	public def sendSMS( o ) {
+	public def sendSMS( o ) { 
+		def smsSvc = dynaSvc.lookup('SMSService'); 
 		return smsSvc.send( o ); 
 	} 
 }

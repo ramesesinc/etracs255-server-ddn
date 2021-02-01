@@ -43,7 +43,7 @@ public class BusinessBillingService  {
 	@Service("NumberService")
 	def numSvc;
 
-	@Service(value="SMSService") 
+	@Service("SMSService") 
 	def smsSvc; 
 
 	@ProxyMethod
@@ -111,7 +111,10 @@ public class BusinessBillingService  {
 
 		//insert the deadline facts
 		def years = o.taxfees*.year; 
-		years << currYear; 
+        if ( o.app?.appyear && o.app.appyear <= currYear ) {
+            years << currYear; 
+        } 
+		
 		years.unique().each { y->
 			(1..4).each { q->
 				def qtr = new QtrDeadline(y, q);	

@@ -223,9 +223,9 @@ class BusinessPermitService  {
 		} 
 		perm.barcode = '51005:'+perm.bin;
 
-		if ( perm.permittype.toString().toUpperCase() == 'TEMPORARY') {
+		//if ( perm.permittype.toString().toUpperCase() == 'TEMPORARY') {
 			perm.pendingrequirements = em.getPendingRequirements([ applicationid: perm.applicationid ]); 
-		} 
+		//} 
 
 		if ( perm.orgtype == 'SING') perm.orgtypedesc = 'SINGLE PROPRIETORSHIP';
 		else if ( perm.orgtype == 'CORP') perm.orgtypedesc = 'CORPORATION';
@@ -237,7 +237,10 @@ class BusinessPermitService  {
 		else if ( perm.orgtype == 'GOV') perm.orgtypedesc = 'GOVERNMENT';
 		else if ( perm.orgtype == 'SCH') perm.orgtypedesc = 'SCHOOL';
 		else if ( perm.orgtype == 'NGO') perm.orgtypedesc = 'NON-GOVERNMENT ORGANIZATION';
+		else if ( perm.orgtype == 'NONS') perm.orgtypedesc = 'NON-STOCK';
+		else if ( perm.orgtype == 'NONP') perm.orgtypedesc = 'NON-PROFIT';
 		else perm.orgtypedesc = perm.orgtype; 
+
 		return perm;
 	}
 

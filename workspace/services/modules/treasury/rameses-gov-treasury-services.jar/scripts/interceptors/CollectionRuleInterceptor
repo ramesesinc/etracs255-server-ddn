@@ -18,7 +18,7 @@ public class CollectionRuleInterceptor {
 		def params = evt.args[0].params;
 		def facts = factBuilder.facts;
 
-		def vp = new VariableInfoProvider(
+		def vp = new DefaultVariableInfoProvider(
 			schemaName:"treasury_variableinfo"
 		);
 		factBuilder.variableInfoProvider = vp;

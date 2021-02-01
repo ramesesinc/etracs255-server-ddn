@@ -62,7 +62,6 @@ public class BPInfoRuleService  {
 
 	@ProxyMethod
 	public def execute(def o) throws Exception {
-
 		def request = [newinfos:[],  vars:[:], entity: o, facts:env.facts ]; 
 		request.actions = buildActions( request );
 		def grps = ruleDB.getRulegroups( [ruleset: RULESET] );

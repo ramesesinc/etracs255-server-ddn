@@ -1,7 +1,5 @@
 import com.rameses.annotations.*;
 import com.rameses.util.*;
-import java.rmi.server.*;
-import com.rameses.services.extended.*;
 
 public class RenewBusinessApplicationInterceptor {
 
@@ -47,10 +45,14 @@ public class RenewBusinessApplicationInterceptor {
 	@ActiveDB('business_receivable') 
 	def business_receivable;		
 
+	@DataContext("business_lockid")
+	def business_lockid;
+
+
 	@After(pattern="BusinessApplicationService.initNew", eval="#{args[0].apptype=='RENEW' && args[0].txnmode == 'ONLINE' }")
 	public void initNew(def evt) { 
 		def app = evt.result;
-		app.objid = "BARNW"+ new UID();
+		app.objid = "BARNW"+ new java.rmi.server.UID();
 
 		if(!app.business.objid) throw new Exception("Please specify a business");
 
@@ -111,6 +113,12 @@ public class RenewBusinessApplicationInterceptor {
 	@Before(pattern="BusinessApplicationService.create", eval="#{args[0].apptype=='RENEW' && args[0].txnmode == 'ONLINE' }")
 	public void beforeCreate(def evt) { 
 		def app = evt.args[0];
+		if ( !app.business?.objid ) 
+			throw new Exception("'app.business.objid' parameter is required");  
+		if ( !app.appyear ) 
+			throw new Exception("'app.appyear' parameter is required");  
+
+
 		app.requirements?.findAll{( it.step.toString() == 'info' )}.each{
 			if ( !it.completed.toString().matches('true|1')) 
 				throw new Exception('Please complete the '+ it.title +' requirement'); 
@@ -118,18 +126,45 @@ public class RenewBusinessApplicationInterceptor {
 				throw new Exception(''+ it.title +' requires a reference number');  
 		} 
 
-		def b = bizSvc.open(app.business);
+
+		def findby = [ objid: app.business.objid ]; 
+		// initiate record locking
+		business_lockid.find( findby ).update([ lockid: new java.rmi.server.UID().toString() ]); 
+		// validate business record 
+		def bb = business_lockid.findBusiness( findby ); 
+		if ( !bb?.objid ) throw new Exception("'"+ find.objid +"' Business Master account not found"); 
+
+		bb.state = ( bb.state ? bb.state.toString().toUpperCase() : null ); 
+		if ( !bb.state.toString().matches('ACTIVE|PROCESSING') ) 
+			throw new Exception("Business Master account status is not active"); 
+		if ( bb.state.toString() == 'PROCESSING' ) 
+			throw new Exception("An application for this business is currently being processed"); 
+
+		if ( !bb.app?.objid ) 
+			throw new Exception("Cannot locate the current application for this Business Master account"); 
+
+        // validate application record 
+		def test = business_lockid.findApp([ objid: bb.app.objid, appyear: app.appyear, apptype: 'RENEW' ]); 
+		if ( test?.objid ) {
+			throw new Exception('Business Renewal Application has already been created.\n Please refer to the Application No. '+ test.appno); 
+		}
+
+
+		def b = bizSvc.open( app.business ); 
 		if ( !b.address?.objid ) b.address = app.business.address; 
 		if ( !b.owner?.address?.objid ) b.owner?.address = app.business.owner?.address;
+
 		b.mobileno = app.business.mobileno;
 		b.phoneno = app.business.phoneno;
 		b.email = app.business.email;
 		b.permittype = app.business.permittype;
-		if(!b.permittype) b.permittype = 'BUSINESS';
-		b.state = 'PROCESSING';
 		b.apptype = 'RENEW'; 
+		b.state = 'PROCESSING'; 
 		b.appcount = b.appcount + 1; 
+		b.permittype = (b.permittype ? b.permittype : 'BUSINESS'); 
+
 		app.appno = b.bin +  "-" + b.appcount + "R"; 
+
 		bizSvc.updateOnApply( b ); 
 	}
 

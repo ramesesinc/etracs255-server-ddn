@@ -61,11 +61,25 @@ class BPApplicationListingReportService {
 			params.filter += ''' AND lob.objid = $P{lobid} ''';
 		}
 
-		def zlist = bpapplication_report.getList( params );
-		if ( !zlist ) throw new Exception('No record(s) found that matches your criteria.');
+		def zlist = null; 
+		if ( params._action.toString() == 'completed-list' ) { 
+			Number nyear = params.startdate.toString().split('-')[0].toInteger(); 
+			Number myear = nyear + 1; 
+			params.taskstartdate = nyear.toString() +'-01-01'; 
+			params.taskenddate   = myear.toString() +'-01-01'; 
+			zlist = bpapplication_report.getCompletedList( params ); 
+		} 
+		else if ( params._action.toString() == 'permit-list' ) { 
+			zlist = bpapplication_report.getPermitList( params ); 
+		} 
+		else { 
+			zlist = bpapplication_report.getList( params ); 
+		} 
 
-		return zlist; 
+		if ( zlist ) return zlist; 
+		throw new Exception('No record(s) found that matches your criteria.');
 	} 
+
 
 	@ProxyMethod
 	public def getApplicationStates() {

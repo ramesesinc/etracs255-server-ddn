@@ -25,6 +25,7 @@ class AddRevenueShare implements RuleActionHandler  {
 
 		def ct = RuleExecutionContext.getCurrentContext();
 		def rs = new RevenueShare();
+		rs.receiptitemid = refitem.refid;
 		
 		rs.refitem = ct.env.acctUtil.createAccountFact( [objid: refitem.account.objid] );
 

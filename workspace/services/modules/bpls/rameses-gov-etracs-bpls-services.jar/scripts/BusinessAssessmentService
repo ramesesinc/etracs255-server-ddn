@@ -32,9 +32,11 @@ public class BusinessAssessmentService  {
 	@ActiveDB("business_application")
 	def bapp;
 
+	@Service 
+	def self;
 
 	@ProxyMethod
-	public def assess(def o) {
+	public def assess( def o ) { 
 		if ( !o.lobs ) throw new Exception("Please provide at least one line of business");
 
 		def facts = [];
@@ -58,7 +60,8 @@ public class BusinessAssessmentService  {
 		if ( o.businessid != null && o.apptype.toString().toUpperCase().matches('NEW|RENEW') ) {
 			recurringfees = recurFeeSvc.getList([ businessid: o.businessid ]);
 			recurringfees.each { 
-				if (!it.taxfeetype) it.taxfeetype = 'REGFEE'; 
+				if ( it.txntype?.feetype ) it.taxfeetype = it.txntype.feetype; 
+				if ( !it.taxfeetype ) it.taxfeetype = 'REGFEE'; 
 
 				req.taxfees << it; 
 				//workaround
@@ -72,10 +75,17 @@ public class BusinessAssessmentService  {
 		} 
 
 		def r = ruleSvc.execute( req );
+
+		if ( r.taxfees != null ) { 
+			r.taxfees.addAll( recurringfees ); 
+			recurringfees.clear(); 
+		} 
+
+		self.postAssess( req, r ); 
+
 		if ( r.taxfees ) { 
 			r.totals = [tax:0, regfee:0, othercharge:0, total:0]; 
-			def rt = r.taxfees;
-			rt.addAll( recurringfees ); 
+			def rt = r.taxfees; 
 			def taxfees = rt.findAll{ it.lob?.objid!=null }.sort{ it.lob } + rt.findAll{it.lob?.objid==null};
 			taxfees.eachWithIndex {oo,idx-> 
 				oo.year = o.appyear;
@@ -116,6 +126,10 @@ public class BusinessAssessmentService  {
 		return r;
 	}
 
+	@ProxyMethod
+	public void postAssess( req, res ) {
+		// to be intercepted...
+	} 
 
 	@ProxyMethod
 	public def getBilling( def o ) {

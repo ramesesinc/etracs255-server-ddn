@@ -1,7 +1,5 @@
 import com.rameses.annotations.*;
 import com.rameses.util.*;
-import java.rmi.server.*;
-import com.rameses.services.extended.*;
 
 public class BusinessApplicationRetireInterceptor {
 
@@ -33,6 +31,10 @@ public class BusinessApplicationRetireInterceptor {
 	@ActiveDB('business_receivable') 
 	def business_receivable;		
 
+	@DataContext("business_lockid")
+	def business_lockid;
+
+
 	@After(pattern="BusinessApplicationService.initNew", eval="#{args[0].apptype=='RETIRE' && args[0].txnmode == 'ONLINE'}")
 	public void initNew(def evt) { 
 		def app = evt.result;
@@ -41,7 +43,7 @@ public class BusinessApplicationRetireInterceptor {
 		def apps = business_application.getOpenApplications( [businessid: app.business.objid, filter: '' ] );
 		if(apps.size() > 0 ) throw new Exception("An application for this business is currently being processed");
 
-		app.objid = 'BARET'+new UID();
+		app.objid = 'BARET'+ new java.rmi.server.UID(); 
 
 		//retrieve business first
         def b = bizSvc.open(app.business);
@@ -67,31 +69,61 @@ public class BusinessApplicationRetireInterceptor {
 		app.appyear = dateSvc.getServerYear();
         app.lobs = lobSvc.getActiveLobs([businessid:b.objid]);
         app.appinfos = infoSvc.getActiveAppInfos([businessid:b.objid]);
-        app.assessmentinfos = [];		
-		app.lobs.each {
-			it.assessmenttype = 'RETIRE';
-		}	
+        app.assessmentinfos = []; 
+		app.lobs.each { 
+			it.assessmenttype = 'RETIRE'; 
+		} 
 	}
 
 	@Before(pattern="BusinessApplicationService.create", eval="#{args[0].apptype=='RETIRE' && args[0].txnmode == 'ONLINE' }")
 	public void beforeCreate( evt ) { 
 		def app = evt.args[0];
-		app.requirements?.findAll{( it.step.toString() == 'info' )}.each{
+		if ( !app.business?.objid ) 
+			throw new Exception("'app.business.objid' parameter is required");  
+		if ( !app.appyear ) 
+			throw new Exception("'app.appyear' parameter is required");  
+
+
+		app.requirements?.findAll{( it.step.toString() == 'info' )}.each{ 
 			if ( !it.completed.toString().matches('true|1')) 
 				throw new Exception('Please complete the '+ it.title +' requirement'); 
 			if ( !it.refno ) 
-				throw new Exception(''+ it.title +' requires a reference number');  
+				throw new Exception(''+ it.title +' requires a reference number'); 
 		} 
 		
+
+		def findby = [ objid: app.business.objid ]; 
+		// initiate record locking
+		business_lockid.find( findby ).update([ lockid: new java.rmi.server.UID().toString() ]); 
+		// validate business record 
+		def bb = business_lockid.findBusiness( findby ); 
+		if ( !bb?.objid ) throw new Exception("'"+ find.objid +"' Business Master account not found"); 
+
+		bb.state = ( bb.state ? bb.state.toString().toUpperCase() : null ); 
+		if ( !bb.state.toString().matches('ACTIVE|PROCESSING') ) 
+			throw new Exception("Business Master account status is not active"); 
+		if ( bb.state.toString() == 'PROCESSING' ) 
+			throw new Exception("An application for this business is currently being processed"); 
+
+		if ( !bb.app?.objid ) 
+			throw new Exception("Cannot locate the current application for this Business Master account"); 
+
+        // validate application record 
+		def test = business_lockid.findApp([ objid: bb.app.objid, appyear: app.appyear, apptype: 'RETIRE' ]); 
+		if ( test?.objid ) {
+			throw new Exception('Business Retire Application has already been created.\n Please refer to the Application No. '+ test.appno); 
+		}
+
+
 		def apps = business_application.getOpenApplications( [businessid: app.business.objid, filter: '' ] ); 
 		def b = bizSvc.open(app.business);
-		b.state = 'PROCESSING';
-		b.apptype = 'RETIRE';
+		b.apptype = 'RETIRE'; 
+		b.state = 'PROCESSING'; 
 		b.appcount = b.appcount + 1; 
-		bizSvc.updateForRetire( b );
+		bizSvc.updateForRetire( b ); 
 
-		app.appno = b.bin +  "-" + b.appcount + "R";
-		app.business.apptype = b.apptype;		
+		app.appno = b.bin +  "-" + b.appcount + "R"; 
+		app.business.apptype = b.apptype; 
 	}
 
 	@After(pattern="BusinessApplicationService.create", eval="#{args[0].apptype=='RETIRE' && args[0].txnmode == 'ONLINE' }")

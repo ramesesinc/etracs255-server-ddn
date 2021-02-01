@@ -17,7 +17,7 @@ public class AssessmentRuleService {
 	@Service("RuleExecutorService")
 	def ruleSvc;
 
-	@Service("HolidayService")
+	@Service(value="HolidayService", connection="enterprise")
 	def holidaySvc;
 
 	/*********************************************************

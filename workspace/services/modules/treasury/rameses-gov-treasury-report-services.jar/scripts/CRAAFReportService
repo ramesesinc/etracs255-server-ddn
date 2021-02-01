@@ -76,7 +76,7 @@ class CRAAFReportService {
 				o.receivedendseries = o.receivedstartseries = null; 
 				o.qtyreceived = 0; 
 			}
-			
+
 			o.receivedstartseries = resolveSeriesValue( o.receivedstartseries ); 
 			o.receivedendseries = resolveSeriesValue( o.receivedendseries ); 
 			o.beginstartseries = resolveSeriesValue( o.beginstartseries ); 
@@ -201,7 +201,17 @@ class CRAAFReportService {
 
 		if ( list.isEmpty()) throw new Exception('No record(s) found');
 
-		list.sort{ it.lineno } 
+		list.sort{ 
+			it.sreceivedstartseries = formatSeries( it.receivedstartseries, it.serieslength ); 
+			it.sreceivedendseries = formatSeries( it.receivedendseries, it.serieslength ); 
+			it.sbeginstartseries = formatSeries( it.beginstartseries, it.serieslength ); 
+			it.sbeginendseries = formatSeries( it.beginendseries, it.serieslength ); 
+			it.sissuedstartseries = formatSeries( it.issuedstartseries, it.serieslength ); 
+			it.sissuedendseries = formatSeries( it.issuedendseries, it.serieslength ); 
+			it.sendingstartseries = formatSeries( it.endingstartseries, it.serieslength ); 
+			it.sendingendseries = formatSeries( it.endingendseries, it.serieslength ); 
+			return it.lineno; 
+		} 
 		return list;  
 	} 
 
@@ -209,6 +219,13 @@ class CRAAFReportService {
 		if ( series == null ) return null; 
 		else if ( series == 999999999 || series == -999999999 ) return null; 
 		else return series; 
+	}
+
+	private String formatSeries( value, serieslength ) {
+		if ( !value ) return null; 
+		if ( !serieslength || serieslength <= 0 ) return null; 
+
+		return value.toString().padLeft( serieslength, '0' ); 
 	}
 
 	private def mergeStubs( items ) {

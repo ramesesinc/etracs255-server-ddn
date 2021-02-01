@@ -77,26 +77,40 @@ public class BPAssessmentRuleService  {
 
 
 	@ProxyMethod
-	public def execute(def o) throws Exception {
-		def request = [newinfos:[], taxfees:[], lobMap:[:], vars:[:], taxfeefacts:[], requirements:[] ]; 
-		request.facts = o.facts;
-		request.entity = o.entity;
-		request.actions = buildActions( request );
-		def grps = ruleDB.getRulegroups( [ruleset: RULESET] );
-		int phase = 0;
-		for( g in grps ) { 
-			request.phasename = g.name;
-			request.phase = phase;
-			request.vars.clear();
-			request.taxfeefacts.clear();
+	public def getRuleGroups( param ) { 
+		return ruleDB.getRulegroups([ ruleset: (param.ruleset ? param.ruleset : "") ]); 
+	} 
 
-			ruleSvc.execute( RULESET, request.facts, request.actions, g.name );
-			//if first phase and there is entry in newinfos break it.
-			if(phase <= 1 && request.newinfos) break;
-			phase++;
-		}
-
-		return [infos:request.newinfos, taxfees: request.taxfees, phase: phase];
+	@ProxyMethod
+	public def execute( def param ) { 
+		return executeImpl( RULESET, param.facts, param.entity ); 
 	}
+
+	@ProxyMethod
+	public def executeImpl( String ruleset, def facts, def entity) {
+		def request = [newinfos:[], taxfees:[], lobMap:[:], vars:[:], taxfeefacts:[], requirements:[] ]; 
+		request.facts = facts;
+		request.entity = entity;
+		request.actions = buildActions( request );
+
+		int phase = 0;
+		def grps = getRuleGroups([ ruleset: ruleset ]);
+		for ( g in grps ) { 
+			request.phase = phase; 
+			request.phasename = g.name; 
+
+			request.vars.clear(); 
+			request.taxfeefacts.clear(); 
+
+			ruleSvc.execute( ruleset, request.facts, request.actions, g.name ); 
+			
+			//if first phase and there is entry in newinfos break it.
+			if ( phase <= 1 && request.newinfos ) break; 
+
+			phase++; 
+		} 
+
+		return [infos: request.newinfos, taxfees: request.taxfees, phase: phase];
+	} 
 }
 

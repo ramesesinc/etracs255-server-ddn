@@ -3,7 +3,7 @@ import com.rameses.annotations.*;
 class ItemAccountListInterceptor {
 
 	@After(pattern="QueryService.getNodeList", eval="#{ args[0]._schemaname == 'itemaccount' }")
-	public def getNodeList(evt) {
+	public void afterGetNodeList( evt ) {
 		def result = evt.result;
 		result << [title:'DRAFT', state:'DRAFT'];
 		result << [title:'ACTIVE', state:'ACTIVE'];
@@ -11,20 +11,32 @@ class ItemAccountListInterceptor {
 	}
 
 	@Before(pattern="QueryService.getList", eval="#{ args[0]._schemaname == 'itemaccount' }")
-	public void loadList(def evt) {
+	public void beforeGetList( evt ) {
 		def o = evt.args[0];
-		if( o.node?.state ) {
-			def str = "state = :state";
-			def m = [state : o.node.state];
-			//add to first position of where
-			if( o.where ) {
-				o.where[0] = str + " AND " + o.where[0];	
-				o.where[1].putAll( m );
-			}
-			else {
-				o.where = [str, m];
-			}
+		def wherelist = [];
+		def wheremap  = [:]; 
+		if ( o.node?.state ) {
+			wherelist << "state = :state";
+			wheremap.state = o.node.state;
 		} 
-	}
 
+		if ( o.exclude instanceof List && o.exclude ) {
+			wherelist << "objid NOT IN ("+ o.exclude.collect{( "'"+ it +"'" )}.join(",") +")"; 
+		} 
+		else if ( o.exclude instanceof Map && o.exclude.objid ) {
+			wherelist << "objid NOT IN ('"+ o.exclude.objid +"')"; 
+		}
+		else if ( o.exclude instanceof String ) {
+			wherelist << "objid NOT IN ("+ o.exclude +")"; 
+		}
+
+		if ( o.where ) {
+			wherelist << o.where[0]; 
+			o.where[0] = wherelist.join(" AND "); 
+			o.where[1].putAll( wheremap ); 
+		}
+		else {
+			o.where = [wherelist.join(" AND "), wheremap]; 
+		}
+	}
 }

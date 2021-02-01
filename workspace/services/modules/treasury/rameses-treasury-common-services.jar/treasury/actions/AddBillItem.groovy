@@ -20,24 +20,23 @@ class AddBillItem extends AbstractAddBillItem {
 
 		int t = 0;
 
-		if( !params.account || params.account.key == "null" ) t=1;
-		if( !params.txntype || params.txntype.key == "null" ) t=t+1;
+		boolean hasAccount = ( params.account && params.account.key != "null" );
+		boolean hasTxntype = ( params.txntype && params.txntype.key != "null" );
+		boolean hasBillcode = ( params.billcode && params.billcode.key != "null" );
 
-		if( t == 2 ) {
-			throw new Exception("AddBillItem error. Please specify an account or txntype in rule "  );
-		}
+		if(!hasAccount && !hasTxntype && !hasBillcode)
+			throw new Exception("AddBillItem error. Please specify an account, txntype or billcode in rule "  );
 
 		def billitem = new BillItem(amount: NumberUtil.round( amt));
-		if( params.txntype?.key && params.txntype?.key != "null" ) {
+		if(  hasAccount ) {
+			setAccountFact( billitem, params.account.key );
+		}
+		if( hasTxntype ) {
 			billitem.txntype = params.txntype.key;
 		}
-
-
-		def acct = params.account;
-		if(  acct ) {
-			setAccountFact( billitem, acct.key );
+		if( hasBillcode ) {
+			billitem.billcode = params.billcode.key;
 		}
-
 		//set the other parameters
 		if( params.year ) billitem.year = params.year.eval();	
 		if( params.month ) billitem.month = params.month.eval();		

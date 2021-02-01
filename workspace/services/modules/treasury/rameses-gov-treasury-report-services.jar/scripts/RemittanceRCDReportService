@@ -16,6 +16,21 @@ class RemittanceRCDReportService {
 	@ActiveDB('remittance_rcdfund_report') 
 	def rcdfund_em; 
 
+	@ActiveDB('remittancereport')
+	def remreport_em;
+
+
+	@Service("NumberService")
+	def numSvc;
+
+
+	@ProxyMethod 
+	def getFundlist( remittanceid ) { 
+		def params = [ remittanceid: remittanceid ]; 
+		return remreport_em.getFundlist( params ); 
+	} 
+
+
 	@ProxyMethod 
 	def getReport( param ) { 
 		def result = [:]; 		
@@ -38,19 +53,29 @@ class RemittanceRCDReportService {
 			result.putAll( o ); 
 			rptdb = rcdfund_em; 
 		} 
+		else {
+			result.fund = [title: '']; 
+		}
 
-		result.collectiontype = rptdb.getCollectionTypes( p ); 
+		p.fundidfilter = (p.fundid ? p.fundid : '%'); 
+
+		result.collectiontype = rptdb.getCollectionTypes( p ); 	
 		result.collectiontype.each { 
 			if ( it.formtype != 'serial' ) { 
 				it.formno = it.formno.toString() +' STUB #' + it.stubno; 
 			} 
 		} 
 
+		def total = 0.0; 
 		result.collectionsummaries = rptdb.getCollectionSummaries( p ); 
-		result.collectionsummaries.each {
+		result.collectionsummaries.each { 
+			total += ( it.amount ? it.amount : 0.0 ); 
+
 			it.particulars = 'AF#'+ it.formno.toString() +':'+ it.collectiontypetitle +'-'+ it.fundtitle; 
 		}
-
+		result.amount = total; 
+		result.amountinwords = numSvc.doubleToWords( result.amount ).toUpperCase(); 
+		
 		result.payments = rptdb.getOtherPayments( p ); 
 
 		def afs = rptdb.getRemittedAFs( p ); 

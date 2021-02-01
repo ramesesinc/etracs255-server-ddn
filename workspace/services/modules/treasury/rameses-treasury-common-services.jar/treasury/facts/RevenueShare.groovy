@@ -6,12 +6,14 @@ package treasury.facts;
 
 class RevenueShare {
 	
+	String receiptitemid;
 	Account refitem;
 	Account payableitem;
 	double amount;
 
 	public Map toMap() {
 		def m = [:];
+		m.receiptitemid = receiptitemid;
 		m.refitem = refitem.toMap();
 		m.payableitem = payableitem.toMap();
 		m.amount = amount;

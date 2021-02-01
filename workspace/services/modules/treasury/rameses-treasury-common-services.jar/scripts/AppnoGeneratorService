@@ -8,6 +8,7 @@ import com.rameses.util.*;
 import java.rmi.server.*;
 import java.util.*;
 import com.rameses.rules.common.RuleExecutionContext;
+import java.util.regex.*;
 
 public class AppnoGeneratorService {
 	
@@ -16,9 +17,6 @@ public class AppnoGeneratorService {
 
 	@Service("DateService")
 	def dateSvc;
-
-	@Service("SequenceService")
-	def seqSvc;
 
 	@Env
 	def env;
@@ -35,7 +33,7 @@ public class AppnoGeneratorService {
 	        sb.append( d.substring(start, end)  );
 	        String mg = m.group();
 	        mg = mg.substring(1, mg.length()-1);
-	        sb.append( handler.handle(mg, num) );
+	        sb.append( handler(mg, num) );
 	        start = m.end();
 	    }
 	    if( start < d.length() ) sb.append(d.substring(start));
@@ -44,7 +42,7 @@ public class AppnoGeneratorService {
 
 	//res is the resource where you will base the 
 	@ProxyMethod
-	public def generate( def pattern, def res ) {
+	public def generate( def ptn, int nx ) {
 		def dt = dateSvc.getServerDate();
 
 		def handler = { pttn, num ->
@@ -64,7 +62,7 @@ public class AppnoGeneratorService {
 			return ret;
 		}
 		
-		return formatNumber( pattern, handler );
+		return formatNumber( ptn, handler, nx );
 	}
 
 

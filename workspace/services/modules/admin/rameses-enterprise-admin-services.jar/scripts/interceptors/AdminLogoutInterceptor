@@ -12,7 +12,7 @@ class AdminLogoutInterceptor
 	@After(pattern="LogoutService.logout") 
 	public void logout( evt ) {
 		def params = evt.args[0];
-		if (!params.SESSIONID) throw new Exception('Please specify SESSIONID'); 
+		if (!params.SESSIONID) return;
 
 		def sessinfo = em.read([sessionid: params.SESSIONID]);
 		if (!sessinfo) return;

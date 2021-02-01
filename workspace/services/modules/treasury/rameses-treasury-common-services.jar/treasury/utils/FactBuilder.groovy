@@ -6,7 +6,7 @@ import enterprise.utils.*;
 
 public class FactBuilder {
 	
-	VariableInfoProvider variableInfoProvider = new VariableInfoProvider();
+	VariableInfoProvider variableInfoProvider = new DefaultVariableInfoProvider();
 	BillItemProvider billItemProvider = new BillItemProvider();
 	
 	def facts = [];	

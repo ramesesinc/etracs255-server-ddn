@@ -221,40 +221,67 @@ class RemittanceReportService  {
 
 		data.serials = db.getSerialReceiptsByRemittanceFund( params ); 
 		data.nonserials = db.getNonSerialReceiptDetailsByFund( params );
-		resolveCompatibility( data ); 		
-		return data;
-	}
 
-	@ProxyMethod 
-	def generateDetailedReport(rem) {
-		def data = rem.clone() 
-		def params = [ remittanceid: data.objid, fundfilter: '' ]; 
-		data.receipts = db.getReceiptsGroupByFund( params );
-		data.acctsummaries = db.getRevenueItemSummaryByFund( params ); 
+		def total1 = data.serials.sum{( it.amount ? it.amount : 0.0 )} 
+		def total2 = data.nonserials.sum{( it.amount ? it.amount : 0.0 )} 
+		data.amount = (total1 ? total1 : 0.0) + (total2 ? total2 : 0.0); 
+
 		resolveCompatibility( data ); 
 		return data;
 	}
 
 	@ProxyMethod 
-	def generateReportByRevenueItem( rem, fund ) {
+	def generateReportByCashReceipts( rem, fund ) {
+		if ( !rem.objid ) throw new Exception('objid parameter is required'); 
+
 		def funds = []; 
-		if ( fund?.objid ) funds << fund.objid; 
+		def fundid = fund?.objid; 
+		if ( fundid ) funds << fundid; 
 
 		def params = [ remittanceid: rem.objid ]; 
- 		if ( rem._INCLUDE_SUBFUND == true ) { 			
-			def list = fund_em.findAllSubAcct([ objid: params.fundid ]).collect{ it.objid }   
+ 		if ( fundid && rem._INCLUDE_SUBFUND == true ) { 			
+			def list = fund_em.findAllSubAcct([ objid: fundid ]).collect{ it.objid }   
 			if ( list ) funds.addAll( list );  
 		} 
 
 		params.fundfilter = ""; 
-		if ( funds ) {
+		if ( funds ) { 
 			params.fundfilter = " AND fund.objid IN ('"+ funds.join("','") +"') "; 
-		}
+		} 
+
+		rem.receipts = db.getReceiptsGroupByFund( params );
+		rem.acctsummaries = db.getRevenueItemSummaryByFund( params ); 
+
+		def total = rem.receipts.sum{( it.amount ? it.amount : 0.0 )} 
+		rem.amount = (total ? total : 0.0); 
+
+		resolveCompatibility( rem ); 
+		return rem;
+	}
+
+	@ProxyMethod 
+	def generateReportByRevenueItem( rem, fund ) {
+		if ( !rem.objid ) throw new Exception('objid parameter is required'); 
+
+		def funds = []; 
+		def fundid = fund?.objid; 
+		if ( fundid ) funds << fundid; 
+
+		def params = [ remittanceid: rem.objid ]; 
+ 		if ( fundid && rem._INCLUDE_SUBFUND == true ) { 			
+			def list = fund_em.findAllSubAcct([ objid: fundid ]).collect{ it.objid }   
+			if ( list ) funds.addAll( list );  
+		} 
+
+		params.fundfilter = ""; 
+		if ( funds ) { 
+			params.fundfilter = " AND fund.objid IN ('"+ funds.join("','") +"') "; 
+		} 
 
 		rem.acctsummaries = db.getRevenueItemSummaryByFund( params );
 		if ( !rem.acctsummaries ) throw new Exception("No record(s) found ");
 
-		if ( params.fundid == 'GENERAL' || params.fundid == '%') { 
+		if ( funds && (fundid == 'GENERAL' || fundid == '%')) { 
 			rem.brgyshares = self.getBrgyShares( params ).items; 
 		} 
 

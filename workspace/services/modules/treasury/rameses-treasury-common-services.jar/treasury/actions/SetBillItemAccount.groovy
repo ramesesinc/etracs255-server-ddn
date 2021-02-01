@@ -17,10 +17,25 @@ class SetBillItemAccount implements RuleActionHandler {
 	public void execute(def params, def drools) {
 		def billitem = params.billitem;
 		def acct = params.account;
+		def billcode = params.billcode;
 
-		def ct = RuleExecutionContext.getCurrentContext();		
-		if( !ct.env.acctUtil ) ct.env.acctUtil = new ItemAccountUtil();
-		billitem.account = ct.env.acctUtil.createAccountFact( [objid: acct.key] );
+		boolean hasAccount = ( acct && acct.key != "null" );
+		boolean hasBillcode = ( billcode && billcode.key != "null" );
+
+		if(!hasAccount && !hasBillcode) throw new Exception("SetBillItemAccount error. Please indiciate an account or billcode" );
+
+		if( hasAccount ) {
+	 		def ct = RuleExecutionContext.getCurrentContext();		
+			if( ct.env.acctUtil ) {
+				billitem.account = ct.env.acctUtil.createAccountFact( [objid: acct.key] );			
+			}
+			else {
+				billitem.account = new Account( objid: acct.key, code: acct.value, title: acct.value);
+			}
+		}
+		else {
+			billitem.billcode = billcode.key;
+		}
 	}
 
 }

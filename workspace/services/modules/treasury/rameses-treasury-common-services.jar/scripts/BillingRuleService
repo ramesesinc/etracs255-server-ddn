@@ -19,7 +19,7 @@ public class BillingRuleService {
 	@Service("FactBuilderService")
 	def factSvc;
 
-	@Service("HolidayService")
+	@Service(value="HolidayService", connection="enterprise")
 	def holidaySvc;
 
 	/*******************************************************************************
@@ -31,14 +31,17 @@ public class BillingRuleService {
 	********************************************************************************/
 	@ProxyMethod
 	public def execute( def request ) {
-
 		if( !request.rulename ) throw new Exception("BillingService error. rulename is required");
 		if( !request.params) throw new Exception("BillingService error. params is required");
 
 		def rulename = request.rulename;
 		def data = request.params;
-		
-		def factBuilder = factSvc.getFacts([ rulename: rulename, params: data ]);
+
+		def factBuilder = request.factBuilder;
+		if(!factBuilder ) {
+			factBuilder = factSvc.getFacts([ rulename: rulename, params: data ]);
+		}		
+		//throw new Exception("pass req" + data);
 
 		def facts = factBuilder.facts;
 		if(!facts) throw new Exception("There should be at least one fact in RuleProcessorService" );
@@ -67,6 +70,12 @@ public class BillingRuleService {
 			}
 		};
 
+		if( request.request_action == "cashreceipt" ) { 
+			if ( !facts.find{( it instanceof CashReceipt )} ) {
+				facts << new CashReceipt();
+			}
+		}
+
 		//include holidays
 		facts << new HolidayFact(  
 			handler: { dt->
@@ -79,7 +88,6 @@ public class BillingRuleService {
 			def amt = new BigDecimal( data.amtpaid + "" );
 			facts << new treasury.facts.Payment( amount: amt );
 		}
-
 		def startgroup = request.startgroup;
 		boolean started = true;
 		if(startgroup) started = false;
@@ -113,7 +121,7 @@ public class BillingRuleService {
 		m.requirements = [];
 
 		facts.each { o->
-			if( (o instanceof BillItem) || (o instanceof CreditBillItem ) ) {
+			if( (o instanceof BillItem) || (o instanceof CreditBillItem ) || (o instanceof CreditBalanceBillItem ) ) {
 				def vv = o.toMap();
 				m.billitems << vv;
 				m.items << vv;
@@ -147,6 +155,7 @@ public class BillingRuleService {
 			}
 		}
 
+
 		//calc totals
 		if(m.items) {
 			m.amount = m.items.sum{ it.amount };
@@ -175,10 +184,10 @@ public class BillingRuleService {
 			m.remove("items");
 		}
 
-		println "BILLITEMS ";
-		m.billitems.each {
-			println "--->" + it.sortorder;
-		}
+		// println "BILLITEMS ";
+		// m.billitems.each {
+		// 	println "--->" + it.sortorder;
+		// }
 
 		//clean also requirements and infos
 		if( !m.requirements ) m.remove("requirements");

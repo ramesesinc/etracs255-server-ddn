@@ -14,7 +14,8 @@ public abstract class AbstractBillItem {
 	String txntype;
 	boolean dynamic;	//if true - then this should not be saved in database. Applicable for surcharge and interest
 	String remarks;
-	
+	String billcode;
+
 	Org org;			//specified org for account
 
 	//This is used for sharing
@@ -34,12 +35,11 @@ public abstract class AbstractBillItem {
 		if(o.txntype) txntype = o.txntype;
 		if(o.dynamic) dynamic = o.dynamic;	//if true - then this should not be saved in database. Applicable for surcharge and interest
 		if(o.remarks) remarks = o.remarks;
-		
+		if(o.billcode) billcode = o.billcode;
 		if(o.org) org = o.org;			//specified org for account
 	}
 
 	public AbstractBillItem() {}
-
 
 	public Account getParentaccount() {
 		if( account?.parentaccount == null )
@@ -55,18 +55,17 @@ public abstract class AbstractBillItem {
 	}
 
 
-	//used for sharing
+	public String toString() {
+		def buff = new StringBuffer();
+		if( account?.objid ) buff.append("acctid:"+account.objid + ";");
+		if(txntype) buff.append( "txntype:"+txntype+";");
+		if(billcode) buff.append("billcode:"+billcode+";");
+		return buff.toString();
+	}
 
+	//used for sharing
 	public int hashCode() {
-		if( account?.objid ) {
-			return account.objid.hashCode();
-		}
-		else if(txntype) {
-			return txntype.hashCode();
-		}
-		else {
-			return this.toString().hashCode();
-		}
+		return toString().hashCode();
 	}
 
 	public boolean equals( def o ) {
@@ -86,6 +85,7 @@ public abstract class AbstractBillItem {
 		m.sortorder = sortorder;
 		m.remarks = remarks;
 		m.tag = tag;
+		m.billcode = billcode;
 		return m;
 	}
 

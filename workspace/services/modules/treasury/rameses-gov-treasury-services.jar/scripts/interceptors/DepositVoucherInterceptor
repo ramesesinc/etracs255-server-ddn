@@ -76,11 +76,12 @@ class DepositVoucherInterceptor {
 		if ( dv.state.toString().toUpperCase() == 'POSTED' ) 
 			throw new Exception('Delete action is not allowed. Transaction is already posted.'); 
 
-		def uu = [ depositvoucherid: '{NULL}', fundid: '{NULL}' ]; 
+		def uu = [ depositvoucherid: '{NULL}', fundid: '{NULL}', depositslipid: '{NULL}' ]; 
 		def findby = [ depositvoucherid: param.objid ]; 
 		checkEm.find( findby ).update( uu ); 
 
 		uu.remove('fundid'); 
+		uu.remove('depositslipid');
 		cvEm.find( findby ).update( uu ); 
 
 		uu.clear(); 

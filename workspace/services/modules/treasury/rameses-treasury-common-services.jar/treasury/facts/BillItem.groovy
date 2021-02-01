@@ -21,8 +21,6 @@ class BillItem extends AbstractBillItem {
 	int year;
 	int month;
 	int qtr;
-	Date fromdate;
-	Date todate;
 
 	LinkedHashSet<BillSubItem> items = new LinkedHashSet<BillSubItem>();
 
@@ -41,8 +39,6 @@ class BillItem extends AbstractBillItem {
 		if(o.year) year = o.year;
 		if(o.month) month = o.month;
 		if(o.qtr) qtr = o.qtr;
-		if(o.fromdate ) fromdate = o.fromdate;
-		if(o.todate) todate = o.todate;
 	}
 
 	public def getTotals( def txntype ) {
@@ -60,14 +56,9 @@ class BillItem extends AbstractBillItem {
 
 	public String toString() {
 		def buff = new StringBuffer();
+		buff.append( super.toString() );
 		if( year > 0 ) buff.append("y:"+year+";");
 		if( month > 0 ) buff.append( "m:"+month+";");
-		if( fromdate ) {
-			buff.append( "fd:" + dtHashcode.format(fromdate)+";");
-		}
-		if( todate ) {
-			buff.append( "td:" + dtHashcode.format(todate)+";");
-		}
 		if( qtr > 0 ) buff.append("q:"+qtr+";");
 		if( account?.objid ) buff.append( "acct:"+account.objid+";");
 		if( txntype ) buff.append( "type:"+txntype+";");
@@ -98,9 +89,6 @@ class BillItem extends AbstractBillItem {
 		if(month>0) m.month = month;
 		if( qtr>0) m.qtr = qtr;
 		
-		if(fromdate) m.fromdate = fromdate;
-		if(todate) m.todate = todate;
-
 		return m;
 	}
 
@@ -110,11 +98,11 @@ class BillItem extends AbstractBillItem {
 	//call this to distribute payment and return the remainder
 	double applyPayment( double payamt ) {
 		//store original amount in principal so we can recover it later
-		principal = amount;
+		//principal = amount;
 
 		double linetotal = NumberUtil.round(total);
 		if( payamt >= linetotal ) {
-			return payamt - linetotal;
+			return NumberUtil.round( payamt - linetotal );
 		}
 
 		//in case for partial payments, distribute evenly first to its subitems. The remainder add to the amount of this bill
@@ -174,25 +162,5 @@ class BillItem extends AbstractBillItem {
 	public int getSortorder() {
 		if( super.getSortorder() > 0 ) return super.getSortorder();
 		return (yearMonth*1000); //+ super.getSortorder();
-	}	
-
-    //not today but to day
-    public int getToday() {
-		def cal = Calendar.instance;
-    	cal.setTime( todate );
-    	return cal.get( Calendar.DAY_OF_MONTH );
-    }
-
-    public int getFromday() {
-    	def cal = Calendar.instance;
-    	cal.setTime( fromdate );
-    	return cal.get( Calendar.DAY_OF_MONTH );
-    }
-
-    public int getNumdays() {
-    	if( fromdate == null || todate == null ) return 0;
-    	return DateFunc.daysDiff( fromdate, todate ) + 1;
-    }
-
-
+	} 
 }

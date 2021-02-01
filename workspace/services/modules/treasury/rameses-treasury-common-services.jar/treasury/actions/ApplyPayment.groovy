@@ -17,18 +17,13 @@ class ApplyPayment implements RuleActionHandler {
 
 	public void execute(def params, def drools) {
 		def payment = params.payment;
+
 		if(!payment) throw new Exception("Payment fact is required in ApplyPayment action");
 
 		def ct = RuleExecutionContext.getCurrentContext();
 		def facts = ct.facts;
 
-		double totalCredit = 0;
-		def creditList = facts.findAll{ it instanceof CreditBillItem };
-		if(creditList ) {
-			totalCredit = (creditList.sum{ it.amount }*-1);
-		}
-		
-		double amt = payment.amount + totalCredit;
+		double amt = payment.amount;
 
 		def billitems = facts.findAll{ it instanceof BillItem }.sort{it.paypriority};
 
@@ -61,16 +56,11 @@ class ApplyPayment implements RuleActionHandler {
 					facts << bi;
 				}		
 			}
-
-			//if there are credit bill items
-			if( creditList ) {
-				facts.addAll( creditList );
-			}
 		}
-
+		
 		//add excess payment if any... remove total credit so you can target the correct value.
 		if(  amt > 0 ) {
-			amt = amt - totalCredit;	
+			//amt = amt - totalCredit;	
 			def ep = new ExcessPayment( amount: amt );
 			facts << ep;
 			drools.insert( ep );

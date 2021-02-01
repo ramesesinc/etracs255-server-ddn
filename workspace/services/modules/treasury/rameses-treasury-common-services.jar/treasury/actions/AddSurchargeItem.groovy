@@ -13,7 +13,7 @@ import com.rameses.osiris3.common.*;
 ****/
 class AddSurchargeItem extends AddBillSubItem {
 
-	public def createSubItemFact( def billitem, def amt, def txntype ) {
+	public def createSubItemFact( def billitem, def amt ) {
 		return new SurchargeItem(parent: billitem, amount: NumberUtil.round(amt), txntype:"surcharge");
 	}
 

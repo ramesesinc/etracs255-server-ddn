@@ -13,33 +13,45 @@ import com.rameses.osiris3.common.*;
 ****/
 class AddBillSubItem extends AbstractAddBillItem {
 
-	public def createSubItemFact( def billitem, def amt, def txntype ) {
+	public def createSubItemFact( def billitem, def amt) {
 		def subItem = new BillSubItem(parent: billitem);
 		subItem.amount = NumberUtil.round(amt);
-		if(txntype!=null && txntype!='null') subItem.txntype = txntype;
 		return subItem;
 	}
 
 	public void execute(def params, def drools) {
 		def billitem = params.billitem;
-		def acct = params.account;
+		if( params.amount == null ) throw new Exception("Please specify amount in AddBillSubItem of " + drools.rule.name );
+		if( billitem == null ) throw new Exception("Please add billitem in AddBillSubItem of " + drools.rule.name );
+
+		boolean hasAccount = ( params.account && params.account.key != "null" );
+		boolean hasTxntype = ( params.txntype && params.txntype.key != "null" );
+		boolean hasBillcode = ( params.billcode && params.billcode.key != "null" );
+
+		if(!hasAccount && !hasTxntype && !hasBillcode)
+			throw new Exception("AddBillSubItem error. Please specify an account, txntype or billcode in rule "  );
+
 		def amt = params.amount.doubleValue;
 
-
-		def txntype = params.txntype;
-		if(txntype!=null &&  !(txntype instanceof String )) {
-			txntype = params.txntype?.key;
-			if( txntype == "null") txntype = null;
+		def subItem = createSubItemFact(  billitem, amt );
+		if(  hasAccount ) {
+			def acct = params.account;
+			def ct = RuleExecutionContext.getCurrentContext();		
+			if( ct.env.acctUtil ) {
+				subItem.account = ct.env.acctUtil.createAccountFact( [objid: acct.key] );			
+			}
+			else {
+				subItem.account = new Account( objid: acct.key, code: acct.value, title: acct.value);
+			}
+			//setAccountFact( subItem, params.account.key );
+		}
+		if( hasTxntype ) {
+			subItem.txntype = params.txntype.key;
+		}
+		if( hasBillcode ) {
+			subItem.billcode = params.billcode.key;
 		}
 
-		if( billitem == null ) throw new Exception("Please add billitem in AddBillSubItem of " + drools.rule.name );
-		if( acct == null && txntype == null ) throw new Exception("Please specify account or txntype in AddBillSubItem of " + drools.rule.name );
-		if( amt == null ) throw new Exception("Please specify amount in AddBillSubItem of " + drools.rule.name );
-
-		def subItem = createSubItemFact(  billitem, amt, txntype );
-		if(acct!=null) {
-			setAccountFact( subItem, acct.key );
-		};	
 		boolean b = billitem.items.add(subItem);
 
 		//add to facts so it can be evaluated...

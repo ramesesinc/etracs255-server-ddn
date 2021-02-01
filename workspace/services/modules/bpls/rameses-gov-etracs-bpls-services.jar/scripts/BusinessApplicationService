@@ -1,7 +1,5 @@
 import com.rameses.annotations.*;
 import com.rameses.util.*;
-import java.rmi.server.*;
-import com.rameses.services.extended.*;
 
 public class BusinessApplicationService  {
 
@@ -72,6 +70,7 @@ public class BusinessApplicationService  {
 		if( !o.appno ) {
 			throw new Exception("appno must be provided. Please check the interceptor providers for "+o.apptype);
 		}
+
 		o.txndate = dateSvc.getServerDate();
 		if(!o.dtfiled) o.dtfiled = o.txndate;
 		if(!o.state) o.state = 'INFO';
