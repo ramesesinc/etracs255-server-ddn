@@ -1,38 +1,42 @@
 [getReceipts]
 select 
   	c.receiptid, c.controlid, c.formno, c.series, 
-	convert(date, c.receiptdate) as receiptdate, c.receiptno, tmp1.amount, 
+	convert(date, c.receiptdate) as receiptdate, c.receiptno, tmp2.amount, 
   	case when c.voided = 0 then ia.title else '***VOIDED***' end as particulars,
   	case when c.voided = 0 then c.paidby else '***VOIDED***' end as payer,
   	case when c.voided = 0 then c.paidbyaddress else '' end as payeraddress, 
 	c.paidby, c.paidbyaddress 
 from ( 
-	select ci.receiptid, ci.acctid, sum(ci.amount) as amount 
-	from collectionvoucher cv 
-		inner join vw_remittance_cashreceiptitem ci on ci.collectionvoucherid = cv.objid 
-	where ci.remittance_controldate >= $P{startdate} 
-		and ci.remittance_controldate < $P{enddate} 
-		and ci.acctid in ( ${acctids} ) 
-	group by ci.receiptid, ci.acctid 
-	union all 
-	select ci.receiptid, ci.refacctid as acctid, -sum(ci.amount) as amount 
-	from collectionvoucher cv 
-		inner join vw_remittance_cashreceiptshare ci on ci.collectionvoucherid = cv.objid 
-	where ci.remittance_controldate >= $P{startdate} 
-		and ci.remittance_controldate < $P{enddate} 
-		and ci.refacctid in ( ${acctids} ) 
-	group by ci.receiptid, ci.refacctid 
-	union all 
-	select ci.receiptid, ci.acctid, sum(ci.amount) as amount 
-	from collectionvoucher cv 
-		inner join vw_remittance_cashreceiptshare ci on ci.collectionvoucherid = cv.objid 
-	where ci.remittance_controldate >= $P{startdate} 
-		and ci.remittance_controldate < $P{enddate} 
-		and ci.acctid in ( ${acctids} ) 
-	group by ci.receiptid, ci.acctid 
-)tmp1 
-	inner join vw_remittance_cashreceipt c on c.receiptid = tmp1.receiptid 
-	inner join itemaccount ia on ia.objid = tmp1.acctid 
+	select receiptid, acctid, sum(amount) as amount 
+	from ( 
+		select ci.receiptid, ci.acctid, sum(ci.amount) as amount 
+		from collectionvoucher cv 
+			inner join vw_remittance_cashreceiptitem ci on ci.collectionvoucherid = cv.objid 
+		where ci.remittance_controldate >= $P{startdate} 
+			and ci.remittance_controldate < $P{enddate} 
+			and ci.acctid in ( ${acctids} ) 
+		group by ci.receiptid, ci.acctid 
+		union all 
+		select ci.receiptid, ci.refacctid as acctid, -sum(ci.amount) as amount 
+		from collectionvoucher cv 
+			inner join vw_remittance_cashreceiptshare ci on ci.collectionvoucherid = cv.objid 
+		where ci.remittance_controldate >= $P{startdate} 
+			and ci.remittance_controldate < $P{enddate} 
+			and ci.refacctid in ( ${acctids} ) 
+		group by ci.receiptid, ci.refacctid 
+		union all 
+		select ci.receiptid, ci.acctid, sum(ci.amount) as amount 
+		from collectionvoucher cv 
+			inner join vw_remittance_cashreceiptshare ci on ci.collectionvoucherid = cv.objid 
+		where ci.remittance_controldate >= $P{startdate} 
+			and ci.remittance_controldate < $P{enddate} 
+			and ci.acctid in ( ${acctids} ) 
+		group by ci.receiptid, ci.acctid 
+	)tmp1 
+	group by receiptid, acctid 
+)tmp2 
+	inner join vw_remittance_cashreceipt c on c.receiptid = tmp2.receiptid 
+	inner join itemaccount ia on ia.objid = tmp2.acctid 
 order by c.formno, convert(date, c.receiptdate), c.series 
 
 
