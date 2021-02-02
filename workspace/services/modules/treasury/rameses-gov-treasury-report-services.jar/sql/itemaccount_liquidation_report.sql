@@ -13,7 +13,8 @@ from (
 		from collectionvoucher cv 
 			inner join vw_remittance_cashreceiptitem ci on ci.collectionvoucherid = cv.objid 
 		where cv.controldate >= $P{startdate} 
-			and cv.controldate < $P{enddate} 
+			and cv.controldate < $P{enddate}
+			and cv.state = 'POSTED' 
 			and ci.acctid in ( ${acctids} ) 
 		group by ci.receiptid, ci.acctid 
 		union all 
@@ -21,7 +22,8 @@ from (
 		from collectionvoucher cv 
 			inner join vw_remittance_cashreceiptshare ci on ci.collectionvoucherid = cv.objid 
 		where cv.controldate >= $P{startdate} 
-			and cv.controldate < $P{enddate} 
+			and cv.controldate < $P{enddate}
+			and cv.state = 'POSTED' 
 			and ci.refacctid in ( ${acctids} ) 
 		group by ci.receiptid, ci.refacctid 
 		union all 
@@ -29,7 +31,8 @@ from (
 		from collectionvoucher cv 
 			inner join vw_remittance_cashreceiptshare ci on ci.collectionvoucherid = cv.objid 
 		where cv.controldate >= $P{startdate} 
-			and cv.controldate < $P{enddate} 
+			and cv.controldate < $P{enddate}
+			and cv.state = 'POSTED' 
 			and ci.acctid in ( ${acctids} ) 
 		group by ci.receiptid, ci.acctid 
 	)tmp1 
@@ -48,6 +51,7 @@ from (
 		inner join vw_remittance_cashreceiptitem ci on ci.collectionvoucherid = cv.objid 
 	where cv.controldate >= $P{startdate} 
 		and cv.controldate < $P{enddate} 
+		and cv.state = 'POSTED' 
 		and ci.acctid in ( ${acctids} ) 
 	group by ci.acctid 
 	union all 
@@ -56,6 +60,7 @@ from (
 		inner join vw_remittance_cashreceiptshare ci on ci.collectionvoucherid = cv.objid 
 	where cv.controldate >= $P{startdate} 
 		and cv.controldate < $P{enddate} 
+		and cv.state = 'POSTED' 
 		and ci.refacctid in ( ${acctids} ) 
 	group by ci.refacctid 
 	union all 
@@ -64,6 +69,7 @@ from (
 		inner join vw_remittance_cashreceiptshare ci on ci.collectionvoucherid = cv.objid 
 	where cv.controldate >= $P{startdate} 
 		and cv.controldate < $P{enddate} 
+		and cv.state = 'POSTED' 
 		and ci.acctid in ( ${acctids} ) 
 	group by ci.acctid 
 )tmp1 
